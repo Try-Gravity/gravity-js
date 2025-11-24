@@ -1,4 +1,4 @@
-# Gravity JS SDK
+# @gravity-js/api
 
 The official Node.js/TypeScript SDK for the Gravity API.
 
@@ -28,16 +28,27 @@ const ad = await client.getAd({
     { role: 'user', content: 'I need help finding a new laptop.' },
     { role: 'assistant', content: 'What is your budget?' }
   ],
-  // Optional: User context
+  // User context
   user: {
     gender: 'male',
     age: '25-34'
-  }
+  },
+  // Device info
+  device: { 
+    ip: '1.2.3.4', 
+    country: 'US', 
+    ua: 'UA' 
+  },
+  // Optional additional context
+  interests: ["coding", "apple", "software development"],
+  summary: "User is building software on his windows laptop but wants an apple laptop"
 });
 
 if (ad) {
   console.log('Ad Text:', ad.adText);
   console.log('Impression URL:', ad.impUrl);
+  console.log("Click URL:", ad.clickUrl);
+  console.log("Payout", ad.payout)
 } else {
   console.log('No ad available for this context.');
 }
@@ -57,4 +68,3 @@ const client = new Client('YOUR_API_KEY', {
 ## License
 
 MIT
-
