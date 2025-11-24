@@ -1,11 +1,11 @@
-# @gravity-js/api
+# @gravity-ai/api
 
 The official Node.js/TypeScript SDK for the Gravity API.
 
 ## Installation
 
 ```bash
-npm install @gravity-js/api
+npm install @gravity-ai/api
 ```
 
 ## Usage
@@ -13,7 +13,7 @@ npm install @gravity-js/api
 First, import and initialize the client with your API key.
 
 ```typescript
-import { Client } from '@gravity-js/api';
+import { Client } from '@gravity-ai/api';
 
 const client = new Client('YOUR_API_KEY');
 ```
