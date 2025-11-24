@@ -39,3 +39,4 @@ yarn-error.log*
 
 # Local 
 package-steps.md
+local-test.js
