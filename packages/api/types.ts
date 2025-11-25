@@ -28,6 +28,7 @@ export interface AdParams {
   device?: DeviceObject;
   user?: UserObject;
   excludedTopics?: string[];
+  relevancy?: number | null;
   // Allow open-ended fields per publisher
   [key: string]: any;
 }

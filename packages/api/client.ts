@@ -5,6 +5,7 @@ import { AdParams, AdResponse, ApiErrorResponse } from './types';
 export interface ClientParams {
     endpoint?: string;
     excludedTopics?: string[];
+    relevancy?: number | null;
   }
 
 /**
@@ -14,12 +15,14 @@ export class Client {
   private apiKey: string;
   private endpoint?: string;
   private excludedTopics?: string[];
+  private relevancy?: number | null;
   private axios: AxiosInstance;
 
   constructor(apiKey: string, params: ClientParams = {}) {
     this.apiKey = apiKey;
     this.endpoint = params.endpoint || 'https://server.trygravity.ai';
     this.excludedTopics = params.excludedTopics || [];
+    this.relevancy = params.relevancy || null;
     this.axios = axios.create({
       baseURL: this.endpoint,
       timeout: 10000,
@@ -43,6 +46,8 @@ export class Client {
         apiKey: params.apiKey ?? this.apiKey,
         // supply top-level excludedTopics if not provided
         excludedTopics: params.excludedTopics ?? this.excludedTopics,
+        // supply top-level relevancy if not provided
+        relevancy: params.relevancy ?? this.relevancy,
       };
       const response = await this.axios.post<AdResponse>('/ad', body);
 
