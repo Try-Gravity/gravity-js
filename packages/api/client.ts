@@ -1,104 +1,252 @@
 import axios, { AxiosInstance, AxiosError } from 'axios';
 import { AdParams, AdResponse, ApiErrorResponse } from './types';
 
-
+/**
+ * Configuration options for the Gravity API Client
+ * @description Pass these options when creating a new Client instance
+ * @example
+ * ```typescript
+ * const params: ClientParams = {
+ *   endpoint: 'https://custom.gravity.server',
+ *   excludedTopics: ['politics', 'religion'],
+ *   relevancy: 0.5
+ * };
+ * ```
+ */
 export interface ClientParams {
-    endpoint?: string;
-    excludedTopics?: string[];
-    relevancy?: number | null;
-  }
+  /** 
+   * Custom API endpoint URL
+   * @default 'https://server.trygravity.ai'
+   */
+  endpoint?: string;
+  /** 
+   * Topics to exclude from all ad requests
+   * @description These exclusions apply to all getAd() calls unless overridden
+   * @example ['politics', 'religion', 'adult']
+   */
+  excludedTopics?: string[];
+  /** 
+   * Default minimum relevancy threshold (0-1)
+   * @description Higher values return more relevant ads but may reduce fill rate
+   * @default null (no threshold)
+   */
+  relevancy?: number | null;
+}
+
+/** Default API endpoint for Gravity */
+const DEFAULT_ENDPOINT = 'https://server.trygravity.ai';
+
+/** Request timeout in milliseconds */
+const REQUEST_TIMEOUT = 10000;
 
 /**
- * Client for the Gravity API
+ * Gravity API Client
+ * 
+ * @description The main client for interacting with the Gravity AI advertising API.
+ * Use this client to fetch contextually relevant advertisements based on conversation content.
+ * 
+ * @example Basic usage
+ * ```typescript
+ * import { Client } from '@gravity-ai/api';
+ * 
+ * const client = new Client('your-api-key');
+ * 
+ * const ad = await client.getAd({
+ *   messages: [
+ *     { role: 'user', content: 'What laptop should I buy?' }
+ *   ]
+ * });
+ * 
+ * if (ad) {
+ *   console.log(ad.adText);
+ * }
+ * ```
+ * 
+ * @example With configuration options
+ * ```typescript
+ * const client = new Client('your-api-key', {
+ *   endpoint: 'https://custom.server.com',
+ *   excludedTopics: ['politics'],
+ *   relevancy: 0.7
+ * });
+ * ```
  */
 export class Client {
+  /** The API key used for authentication */
   private apiKey: string;
-  private endpoint?: string;
-  private excludedTopics?: string[];
-  private relevancy?: number | null;
+  
+  /** The API endpoint URL */
+  private endpoint: string;
+  
+  /** Topics to exclude from ad matching */
+  private excludedTopics: string[];
+  
+  /** Minimum relevancy threshold */
+  private relevancy: number | null;
+  
+  /** Axios HTTP client instance */
   private axios: AxiosInstance;
 
+  /**
+   * Create a new Gravity API client
+   * 
+   * @param apiKey - Your Gravity API key (required)
+   * @param params - Optional configuration parameters
+   * 
+   * @throws Will not throw - invalid API key errors occur on first request
+   * 
+   * @example
+   * ```typescript
+   * // Basic initialization
+   * const client = new Client('your-api-key');
+   * 
+   * // With custom options
+   * const client = new Client('your-api-key', {
+   *   excludedTopics: ['gambling', 'alcohol'],
+   *   relevancy: 0.6
+   * });
+   * ```
+   */
   constructor(apiKey: string, params: ClientParams = {}) {
     this.apiKey = apiKey;
-    this.endpoint = params.endpoint || 'https://server.trygravity.ai';
+    this.endpoint = params.endpoint || DEFAULT_ENDPOINT;
     this.excludedTopics = params.excludedTopics || [];
-    this.relevancy = params.relevancy || null;
+    this.relevancy = params.relevancy ?? null;
+    
     this.axios = axios.create({
       baseURL: this.endpoint,
-      timeout: 10000,
+      timeout: REQUEST_TIMEOUT,
       headers: {
         'Authorization': `Bearer ${this.apiKey}`,
         'Content-Type': 'application/json',
       },
     });
   }
- 
+
   /**
-   * Request a text advertisement. Returns null if there is no relevant ad found.
-   * @param params - AdParams matching the server schema
-   * @returns Promise<BidResponse | null>
+   * Request a contextually relevant advertisement
+   * 
+   * @description Fetches an ad based on the provided conversation context and targeting parameters.
+   * Returns `null` if no relevant ad is available or if an error occurs.
+   * 
+   * @param params - Ad request parameters including conversation messages
+   * @returns Promise resolving to AdResponse or null if no ad available
+   * 
+   * @example Basic request
+   * ```typescript
+   * const ad = await client.getAd({
+   *   messages: [
+   *     { role: 'user', content: 'I need a new laptop for programming' },
+   *     { role: 'assistant', content: 'What is your budget range?' }
+   *   ]
+   * });
+   * ```
+   * 
+   * @example Full request with targeting
+   * ```typescript
+   * const ad = await client.getAd({
+   *   messages: [...],
+   *   user: {
+   *     uid: 'user-123',
+   *     gender: 'male',
+   *     age: '25-34'
+   *   },
+   *   device: {
+   *     ip: '192.168.1.1',
+   *     country: 'US',
+   *     ua: navigator.userAgent
+   *   },
+   *   excludedTopics: ['gambling'],
+   *   relevancy: 0.8
+   * });
+   * ```
+   * 
+   * @example Handling the response
+   * ```typescript
+   * const ad = await client.getAd({ messages });
+   * 
+   * if (ad) {
+   *   // Display the ad
+   *   showAd(ad.adText);
+   *   
+   *   // Track impression
+   *   if (ad.impUrl) {
+   *     new Image().src = ad.impUrl;
+   *   }
+   * }
+   * ```
    */
   async getAd(params: AdParams): Promise<AdResponse | null> {
     try {
+      // Build request body, merging request params with client defaults
       const body: AdParams = {
         ...params,
-        // prefer explicit apiKey in params, else default to client's apiKey
+        // Prefer explicit apiKey in params, else use client's apiKey
         apiKey: params.apiKey ?? this.apiKey,
-        // supply top-level excludedTopics if not provided
+        // Use request-level excludedTopics, or fall back to client-level
         excludedTopics: params.excludedTopics ?? this.excludedTopics,
-        // supply top-level relevancy if not provided
+        // Use request-level relevancy, or fall back to client-level
         relevancy: params.relevancy ?? this.relevancy,
       };
+
       const response = await this.axios.post<AdResponse>('/ad', body);
 
-      // Check if response contains valid ad data
-      if (response.status === 204) return null;
+      // 204 No Content means no relevant ad was found
+      if (response.status === 204) {
+        return null;
+      }
 
+      // Validate response has required ad data
       if (response.data && response.data.adText) {
-        const payload = response.data as AdResponse;
         return {
-          adText: payload.adText,
-          impUrl: payload.impUrl,
-          clickUrl: payload.clickUrl,
-          payout: payload.payout,
+          adText: response.data.adText,
+          impUrl: response.data.impUrl,
+          clickUrl: response.data.clickUrl,
+          payout: response.data.payout,
         };
       }
-          
+
+      return null;
     } catch (error) {
       this.handleError(error, 'getAd');
       return null;
     }
-    return null;
   }
 
   /**
-   * Handle API errors with logging
-   * @param error - The error object
-   * @param method - The method name where error occurred
+   * Handle and log API errors
+   * 
+   * @description Processes errors from API calls and logs appropriate messages.
+   * Distinguishes between network errors, server errors, and unexpected errors.
+   * 
+   * @param error - The error object from the failed request
+   * @param method - The name of the method where the error occurred
+   * 
+   * @internal This method is for internal use only
    */
-  private handleError(error: any, method: string): void {
+  private handleError(error: unknown, method: string): void {
     if (axios.isAxiosError(error)) {
       const axiosError = error as AxiosError<ApiErrorResponse>;
-      
+
       if (axiosError.response) {
-        // Server responded with error status
+        // Server responded with an error status code (4xx, 5xx)
         console.error(`[GravityClient.${method}] API Error:`, {
           status: axiosError.response.status,
           statusText: axiosError.response.statusText,
           data: axiosError.response.data,
         });
       } else if (axiosError.request) {
-        // Request was made but no response received
+        // Request was made but no response was received (network error)
         console.error(`[GravityClient.${method}] Network Error:`, {
           message: 'No response received from server',
           code: axiosError.code,
         });
       } else {
-        // Something else happened
+        // Error occurred while setting up the request
         console.error(`[GravityClient.${method}] Request Error:`, axiosError.message);
       }
     } else {
-      // Non-axios error
+      // Non-axios error (unexpected)
       console.error(`[GravityClient.${method}] Unexpected Error:`, error);
     }
   }
