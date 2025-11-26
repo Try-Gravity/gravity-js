@@ -37,6 +37,5 @@ yarn-error.log*
 *.sln
 *.sw?
 
-# Local 
+# Local/internal files
 package-steps.md
-local-test.js
