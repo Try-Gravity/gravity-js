@@ -1,0 +1,13 @@
+{
+  "name": "gravity-api-test",
+  "private": true,
+  "version": "0.0.0",
+  "description": "Example script for testing @gravity-ai/api locally",
+  "main": "index.js",
+  "scripts": {
+    "build": "echo 'No build needed for api-test'",
+    "start": "node --env-file=.env index.js",
+    "start:no-env": "node index.js"
+  }
+}
+
