@@ -181,8 +181,6 @@ export class Client {
       // Build request body, merging request params with client defaults
       const body: AdParams = {
         ...params,
-        // Prefer explicit apiKey in params, else use client's apiKey
-        apiKey: params.apiKey ?? this.apiKey,
         // Use request-level excludedTopics, or fall back to client-level
         excludedTopics: params.excludedTopics ?? this.excludedTopics,
         // Use request-level relevancy, or fall back to client-level
