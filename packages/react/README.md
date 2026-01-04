@@ -23,7 +23,11 @@ function ChatMessage({ messages }) {
   const [ad, setAd] = useState(null);
 
   useEffect(() => {
-    client.getAd({ messages }).then(setAd);
+    client.contextualAd({ 
+      messages,
+      sessionId: 'session-123',
+      userId: 'user-456',
+    }).then(res => setAd(res?.ads[0] || null));
   }, [messages]);
 
   return (
@@ -45,7 +49,7 @@ A fully-styled, customizable ad banner component.
 import { AdBanner } from '@gravity-ai/react';
 
 <AdBanner
-  ad={adResponse}
+  ad={ad}                // Takes a single ad object (e.g., response.ads[0])
   theme="dark"           // 'light' | 'dark' | 'minimal' | 'branded'
   size="medium"          // 'small' | 'medium' | 'large' | 'responsive'
   showLabel={true}       // Show "Sponsored" label
@@ -60,7 +64,7 @@ import { AdBanner } from '@gravity-ai/react';
 
 | Prop | Type | Default | Description |
 |------|------|---------|-------------|
-| `ad` | `AdResponse \| null` | required | The ad response from Gravity API |
+| `ad` | `AdResponse \| null` | required | A single ad object (e.g., `response.ads[0]`) |
 | `theme` | `'light' \| 'dark' \| 'minimal' \| 'branded'` | `'light'` | Visual theme preset |
 | `size` | `'small' \| 'medium' \| 'large' \| 'responsive'` | `'medium'` | Size preset |
 | `className` | `string` | - | Custom class name for container |
@@ -96,7 +100,7 @@ import { AdText } from '@gravity-ai/react';
 
 | Prop | Type | Default | Description |
 |------|------|---------|-------------|
-| `ad` | `AdResponse \| null` | required | The ad response from Gravity API |
+| `ad` | `AdResponse \| null` | required | A single ad object (e.g., `response.ads[0]`) |
 | `className` | `string` | - | Custom class name |
 | `style` | `CSSProperties` | - | Custom inline styles |
 | `fallback` | `ReactNode` | `null` | Content when ad is null |

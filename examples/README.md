@@ -42,15 +42,27 @@ A simple Node.js script to test the API client.
 ### Expected Output
 
 ```
-🚀 Testing Gravity API Client...
+🚀 Testing Gravity API Client (v1)...
 
-✅ Ad received!
+✅ Contextual ad received!
 
 📝 Ad Text: Check out our amazing laptops...
 🔗 Click URL: https://example.com/laptops
 📊 Impression URL: https://tracking.example.com/imp?id=123
 💰 Payout: $0.50
+📦 Total Ads: 1
 ```
+
+### Available v1 Methods
+
+The test script can demonstrate all v1 API methods:
+
+| Method | Description |
+|--------|-------------|
+| `client.contextualAd()` | Contextual ads based on messages |
+| `client.summaryAd()` | Ads based on query string |
+| `client.nonContextualAd()` | Non-contextual ads |
+| `client.bid()` + `client.render()` | Two-phase auction flow |
 
 ---
 
@@ -131,9 +143,22 @@ import { Client } from '@gravity-ai/api';
 
 const client = new Client('your-api-key');
 
-// In your component:
+// In your component (v1 API):
 useEffect(() => {
-  client.getAd({ messages }).then(setAd);
+  client.contextualAd({ 
+    messages,
+    sessionId: 'session-123',
+    userId: 'user-456',
+  }).then(res => setAd(res?.ads[0] || null));
+}, []);
+
+// Or using summary-based targeting:
+useEffect(() => {
+  client.summaryAd({ 
+    queryString: 'best laptops for developers',
+    sessionId: 'session-123',
+    userId: 'user-456',
+  }).then(res => setAd(res?.ads[0] || null));
 }, []);
 ```
 

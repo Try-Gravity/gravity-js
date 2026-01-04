@@ -14,8 +14,8 @@ import { getAdBannerStyles, baseLabelStyle } from '../styles';
  *   const [ad, setAd] = useState(null);
  *
  *   useEffect(() => {
- *     client.getAd({ messages }).then(setAd);
- *   }, []);
+ *     client.contextualAd({ messages }).then(res => setAd(res?.ads[0] || null));
+ *   }, [messages]);
  *
  *   return (
  *     <AdBanner
