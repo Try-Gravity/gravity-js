@@ -3,12 +3,30 @@ import type { CSSProperties, ReactNode } from 'react';
 /**
  * Ad response from the Gravity API
  * This mirrors the type from @gravity-ai/api for convenience
+ * Includes optional v1 fields for backward compatibility
  */
 export interface AdResponse {
+  /** The advertisement copy text */
   adText: string;
+  /** Impression tracking URL */
   impUrl?: string;
+  /** Click-through tracking URL */
   clickUrl?: string;
+  /** Payout amount in USD */
   payout?: number;
+  // v1 fields (optional for backward compatibility)
+  /** Unique ad identifier (v1) */
+  adId?: string;
+  /** Ad title (v1) */
+  title?: string;
+  /** Brand/advertiser name (v1) */
+  brandName?: string;
+  /** Brand logo image URL (v1) */
+  brandImage?: string;
+  /** Landing page URL (v1) */
+  url?: string;
+  /** Favicon URL (v1) */
+  favicon?: string;
 }
 
 /**

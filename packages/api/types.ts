@@ -160,3 +160,140 @@ export interface ApiErrorResponse {
   /** HTTP status code */
   statusCode?: number;
 }
+
+// =============================================================================
+// v1 API Types
+// =============================================================================
+
+/**
+ * Base fields shared across all v1 ad requests.
+ * @description Mirrors engine's AdRequestBaseV1. All fields are optional.
+ */
+export interface AdRequestBaseV1 {
+  /** Session identifier for tracking user sessions */
+  sessionId?: string;
+  /** Unique user identifier */
+  userId?: string;
+  /** Device and location information */
+  device?: DeviceObject;
+  /** User demographic and interest data */
+  user?: UserObject;
+  /** Topics to exclude from ad matching */
+  excludedTopics?: string[];
+  /** Minimum relevancy score threshold (0-1) */
+  relevancy?: number | null;
+  /** Number of ads to return (1-3, default 1) */
+  numAds?: number;
+  /** Returns a test ad when true */
+  testAd?: boolean;
+  /** Additional custom fields */
+  [key: string]: unknown;
+}
+
+/**
+ * POST /api/v1/ad/contextual
+ * @description Requires messages array for contextual targeting.
+ */
+export interface ContextualAdParams extends AdRequestBaseV1 {
+  /** Array of conversation messages (required) */
+  messages: MessageObject[];
+}
+
+/**
+ * POST /api/v1/ad/summary
+ * @description Requires queryString for summary-based targeting.
+ */
+export interface SummaryAdParams extends AdRequestBaseV1 {
+  /** Search/summary query string (required) */
+  queryString: string;
+}
+
+/**
+ * POST /api/v1/ad/non-contextual
+ * @description No context required - returns ads without context matching.
+ */
+export interface NonContextualAdParams extends AdRequestBaseV1 {}
+
+/**
+ * POST /api/v1/bid
+ * @description Two-phase bid request. Returns bid price and bidId.
+ * @note Does NOT extend AdRequestBaseV1 - has its own field set.
+ */
+export interface BidParams {
+  /** Array of conversation messages (required) */
+  messages: MessageObject[];
+  /** Session identifier */
+  sessionId?: string;
+  /** Unique user identifier */
+  userId?: string;
+  /** Chat/conversation identifier */
+  chatId?: string;
+  /** Device and location information */
+  device?: DeviceObject;
+}
+
+/**
+ * POST /api/v1/render
+ * @description Two-phase render request using cached bid context.
+ */
+export interface RenderParams {
+  /** Bid identifier from the bid phase (required) */
+  bidId: string;
+  /** Realized price to charge (required) */
+  realizedPrice: number;
+}
+
+// =============================================================================
+// v1 Response Types
+// =============================================================================
+
+/**
+ * Single ad object in v1 responses.
+ * @description Contains all ad creative and tracking data.
+ */
+export interface AdV1 {
+  /** The advertisement copy text */
+  adText: string;
+  /** Unique ad identifier */
+  adId: string;
+  /** Ad title */
+  title?: string;
+  /** Brand/advertiser name */
+  brandName?: string;
+  /** Brand logo image URL */
+  brandImage?: string;
+  /** Landing page URL */
+  url?: string;
+  /** Favicon URL */
+  favicon?: string;
+  /** Impression tracking URL */
+  impUrl?: string;
+  /** Click-through tracking URL */
+  clickUrl?: string;
+  /** Payout amount in USD */
+  payout?: number;
+}
+
+/**
+ * v1 ad response (multi-ad support).
+ * @description Returned by contextual, summary, non-contextual, and render endpoints.
+ */
+export interface AdResponseV1 {
+  /** Array of ad objects */
+  ads: AdV1[];
+  /** Number of ads returned */
+  numAds: number;
+  /** Total payout across all ads */
+  totalPayout?: number;
+}
+
+/**
+ * v1 bid response.
+ * @description Returned by the bid endpoint.
+ */
+export interface BidResponse {
+  /** Clearing price (CPM) */
+  bid: number;
+  /** Bid identifier for the render phase */
+  bidId: string;
+}
