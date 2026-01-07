@@ -27,14 +27,14 @@ npm install @gravity-ai/api @gravity-ai/react
 
 ## Quick Start
 
-### Contextual Ads (v1 API)
+### Fetching Ads
 
 ```typescript
 import { Client } from '@gravity-ai/api';
 
 const client = new Client('your-api-key');
 
-const response = await client.contextualAd({
+const response = await client.getAd({
   messages: [
     { role: 'user', content: 'What are some good hiking trails?' },
     { role: 'assistant', content: 'Here are some popular hiking trails...' }
@@ -51,48 +51,6 @@ if (response) {
 }
 ```
 
-### Summary-Based Ads
-
-```typescript
-const response = await client.summaryAd({
-  queryString: 'User is looking for the best hiking trails in Colorado',
-  sessionId: 'session-123',
-  userId: 'user-456',
-});
-```
-
-### Non-Contextual Ads
-
-```typescript
-const response = await client.nonContextualAd({
-  sessionId: 'session-123',
-  userId: 'user-456',
-  numAds: 2,  // Request multiple ads
-});
-```
-
-### Two-Phase Flow (Bid + Render)
-
-For publishers who need to know the clearing price before rendering:
-
-```typescript
-// Phase 1: Get bid price
-const bidResult = await client.bid({
-  messages: [...],
-  sessionId: 'session-123',
-});
-
-if (bidResult) {
-  console.log(`Clearing price: $${bidResult.bid} CPM`);
-  
-  // Phase 2: Render the ad (if you decide to show it)
-  const response = await client.render({
-    bidId: bidResult.bidId,
-    realizedPrice: bidResult.bid,
-  });
-}
-```
-
 ### With React Components
 
 ```tsx
@@ -106,7 +64,7 @@ function ChatApp({ messages }) {
   const [ad, setAd] = useState(null);
   
   useEffect(() => {
-    client.contextualAd({ 
+    client.getAd({ 
       messages,
       sessionId: 'session-123',
       userId: 'user-456',
@@ -127,26 +85,32 @@ function ChatApp({ messages }) {
 }
 ```
 
-### Legacy API (v0)
+## Migrating from v0
 
-The original `getAd()` method is still available for backward compatibility:
+If you're upgrading from a previous version, the `getAd()` response format has changed:
 
 ```typescript
-const ad = await client.getAd({
-  messages: [...]
-});
+// Before (v0)
+const ad = await client.getAd({ messages });
+if (ad) {
+  console.log(ad.adText);
+}
+
+// After (v1)
+const response = await client.getAd({ messages, sessionId: '...' });
+if (response) {
+  const ad = response.ads[0];
+  console.log(ad.adText);
+}
 ```
+
+The response is now an object with an `ads` array instead of a single ad object.
 
 ## API Methods
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| `contextualAd()` | `/api/v1/ad/contextual` | Contextual ads based on conversation messages |
-| `summaryAd()` | `/api/v1/ad/summary` | Ads based on a summary query string |
-| `nonContextualAd()` | `/api/v1/ad/non-contextual` | Non-contextual ads (no context required) |
-| `bid()` | `/api/v1/bid` | Two-phase: get bid price before rendering |
-| `render()` | `/api/v1/render` | Two-phase: render ad using cached bid |
-| `getAd()` | `/ad` | Legacy v0 endpoint (still supported) |
+| `getAd()` | `/api/v1/ad/contextual` | Contextual ads based on conversation messages |
 
 ## Documentation
 
@@ -219,15 +183,6 @@ gravity-js/
 ```
 
 ## FAQ
-
-### Which method should I use?
-
-| Use Case | Method |
-|----------|--------|
-| Chat/conversation context | `contextualAd()` |
-| Summaries | `summaryAd()` |
-| Integration testing / brand awareness | `nonContextualAd()` |
-| Custom auction integration | `bid()` + `render()` |
 
 ### Should I pass `sessionId` and `userId`?
 

@@ -17,8 +17,7 @@ import { Client } from '@gravity-ai/api';
 
 const client = new Client('your-api-key');
 
-// Contextual ads (v1 API)
-const response = await client.contextualAd({
+const response = await client.getAd({
   messages: [
     { role: 'user', content: 'What are some good hiking trails?' },
     { role: 'assistant', content: 'Here are some popular trails...' }
@@ -32,6 +31,29 @@ if (response) {
   console.log(ad.adText);
 }
 ```
+
+## Migrating from v0
+
+If you're upgrading from a previous version, the `getAd()` response format has changed:
+
+```typescript
+// Before (v0)
+const ad = await client.getAd({ messages });
+if (ad) {
+  console.log(ad.adText);
+}
+
+// After (v1)
+const response = await client.getAd({ messages, sessionId: '...' });
+if (response) {
+  const ad = response.ads[0];
+  console.log(ad.adText);
+}
+```
+
+The response is now an object with an `ads` array instead of a single ad object.
+
+---
 
 ## Client Configuration
 
@@ -67,16 +89,12 @@ const client = new Client('your-api-key', {
 
 ---
 
-## v1 API Methods
-
-The v1 API provides explicit endpoints for different ad types with multi-ad support.
-
-### `contextualAd()` — Contextual Ads
+## `getAd()` — Fetch Contextual Ads
 
 Fetch ads based on conversation context. Requires `messages` array.
 
 ```typescript
-const response = await client.contextualAd({
+const response = await client.getAd({
   messages: [
     { role: 'user', content: 'I need help finding a new laptop.' },
     { role: 'assistant', content: 'What is your budget?' }
@@ -92,10 +110,10 @@ if (response) {
 }
 ```
 
-#### Full Request with All Options
+### Full Request with All Options
 
 ```typescript
-const response = await client.contextualAd({
+const response = await client.getAd({
   // Required: conversation messages
   messages: [
     { role: 'user', content: 'I need help finding a new laptop.' },
@@ -135,84 +153,13 @@ const response = await client.contextualAd({
 });
 ```
 
-### `summaryAd()` — Summary-Based Ads
-
-Fetch ads based on a search query or summary string. Requires `queryString`.
-
-```typescript
-const response = await client.summaryAd({
-  queryString: 'User wants a laptop for software development',
-  sessionId: 'session-123',
-  userId: 'user-456',
-});
-
-if (response) {
-  const ad = response.ads[0];
-  console.log(ad.adText);
-}
-```
-
-### `nonContextualAd()` — Non-Contextual Ads
-
-Fetch ads without context matching. Ideal for:
-- **Integration testing** — Test your ad implementation on a subset of users before rolling out contextual ads
-- **Brand awareness** — Show ads without requiring conversation context
-- **Fallback placements** — Ad slots where context isn't available
-
-```typescript
-const response = await client.nonContextualAd({
-  sessionId: 'session-123',
-  userId: 'user-456',
-  numAds: 2,  // Request multiple ads
-});
-
-if (response) {
-  response.ads.forEach(ad => console.log(ad.adText));
-}
-```
-
-### `bid()` + `render()` — Two-Phase Flow
-
-For publishers who need to know the clearing price before rendering the ad.
-
-```typescript
-// Phase 1: Get bid price
-const bidResult = await client.bid({
-  messages: [
-    { role: 'user', content: 'I need help with my code' }
-  ],
-  sessionId: 'session-123',
-});
-
-if (bidResult) {
-  console.log(`Clearing price: $${bidResult.bid} CPM`);
-  console.log(`Bid ID: ${bidResult.bidId}`);
-  
-  // Decide whether to show ad based on price...
-  
-  // Phase 2: Render the ad
-  const response = await client.render({
-    bidId: bidResult.bidId,
-    realizedPrice: bidResult.bid,
-  });
-  
-  if (response) {
-    const ad = response.ads[0];
-    console.log(ad.adText);
-  }
-}
-```
-
-> **Note:** Bids expire after 60 seconds. Call `render()` promptly after `bid()`.
-
 ---
 
-## v1 Request Parameters
-
-### Base Parameters (All v1 Methods)
+## Request Parameters
 
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
+| `messages` | `MessageObject[]` | Yes | Conversation history |
 | `sessionId` | `string` | Recommended | Session identifier for tracking |
 | `userId` | `string` | Recommended | User identifier for frequency capping |
 | `device` | `DeviceObject` | - | Device/location info |
@@ -222,32 +169,22 @@ if (bidResult) {
 | `numAds` | `number` | - | Number of ads (1-3, default 1) |
 | `testAd` | `boolean` | - | Return test ad when true |
 
-### Method-Specific Parameters
-
-| Method | Required Parameter | Description |
-|--------|-------------------|-------------|
-| `contextualAd()` | `messages: MessageObject[]` | Conversation history |
-| `summaryAd()` | `queryString: string` | Search/summary query |
-| `nonContextualAd()` | None | No context required |
-| `bid()` | `messages: MessageObject[]` | Conversation for bid |
-| `render()` | `bidId: string`, `realizedPrice: number` | From bid response |
-
 ---
 
-## v1 Response Types
+## Response Types
 
-### AdResponseV1
+### AdResponse
 
-Returned by `contextualAd()`, `summaryAd()`, `nonContextualAd()`, and `render()`.
+Returned by `getAd()`.
 
 ```typescript
-interface AdResponseV1 {
-  ads: AdV1[];           // Array of ads
+interface AdResponse {
+  ads: Ad[];           // Array of ads
   numAds: number;        // Number of ads returned
   totalPayout?: number;  // Total payout across all ads
 }
 
-interface AdV1 {
+interface Ad {
   adText: string;        // Ad copy text
   adId: string;          // Unique ad identifier
   title?: string;        // Ad title
@@ -258,17 +195,6 @@ interface AdV1 {
   impUrl?: string;       // Impression tracking URL
   clickUrl?: string;     // Click-through URL
   payout?: number;       // Payout amount
-}
-```
-
-### BidResponse
-
-Returned by `bid()`.
-
-```typescript
-interface BidResponse {
-  bid: number;     // Clearing price (CPM)
-  bidId: string;   // Use this in render()
 }
 ```
 
@@ -310,74 +236,18 @@ interface DeviceObject {
 
 ---
 
-## Legacy API (v0)
-
-The original `getAd()` method is still available for backward compatibility.
-
-### Basic Request
-
-```typescript
-const ad = await client.getAd({
-  messages: [
-    { role: 'user', content: 'I need help finding a new laptop.' },
-    { role: 'assistant', content: 'What is your budget?' }
-  ]
-});
-```
-
-### Full Request with All Options
-
-```typescript
-const ad = await client.getAd({
-  messages: [...],
-  user: { uid: 'user-123', gender: 'male', age: '25-34' },
-  device: { ip: '1.2.3.4', country: 'US', ua: 'Mozilla/5.0...' },
-  excludedTopics: ['politics'],
-  relevancy: 0.8,
-});
-```
-
-### Legacy Response
-
-```typescript
-interface AdResponse {
-  adText: string;       // The ad copy to display
-  impUrl?: string;      // Impression tracking URL
-  clickUrl?: string;    // Click-through URL
-  payout?: number;      // Payout amount
-}
-```
-
-### Handling the Legacy Response
-
-```typescript
-const ad = await client.getAd({ messages });
-
-if (ad) {
-  console.log('Ad:', ad.adText);
-  
-  // Track impression
-  if (ad.impUrl) {
-    fetch(ad.impUrl);
-  }
-} else {
-  console.log('No ad available');
-}
-```
-
 ## Error Handling
 
 The client handles errors gracefully and returns `null` on failure. Errors are logged to the console.
 
 ```typescript
-const response = await client.contextualAd({ messages, sessionId: '...' });
+const response = await client.getAd({ messages, sessionId: '...' });
 
 // Returns null on:
 // - Network errors
 // - API errors (4xx, 5xx)
 // - No relevant ad (204)
 // - Invalid response data
-// - Expired bid (404 for render())
 
 if (!response) {
   // Handle gracefully - don't break the user experience
@@ -391,22 +261,12 @@ Full TypeScript support with exported types:
 ```typescript
 import { Client, ClientParams } from '@gravity-ai/api';
 import type { 
-  // v1 types
-  ContextualAdParams,
-  SummaryAdParams,
-  NonContextualAdParams,
-  BidParams,
-  RenderParams,
-  AdV1,
-  AdResponseV1,
-  BidResponse,
-  // Common types
+  AdParams,
+  Ad,
+  AdResponse,
   MessageObject, 
   DeviceObject, 
   UserObject,
-  // Legacy types
-  AdParams, 
-  AdResponse,
 } from '@gravity-ai/api';
 ```
 
@@ -428,7 +288,7 @@ function ChatApp() {
   const [ad, setAd] = useState(null);
   
   useEffect(() => {
-    client.contextualAd({ 
+    client.getAd({ 
       messages,
       sessionId: 'session-123',
       userId: 'user-456',
@@ -443,15 +303,9 @@ function ChatApp() {
 
 1. **Always include `sessionId` and `userId`** — These directly impact publisher revenue through better frequency capping and ad relevance.
 
-2. **Choose the right method**:
-   - Chat/conversation → `contextualAd()`
-   - Chat summary → `summaryAd()`
-   - Brand awareness → `nonContextualAd()`
-   - Custom auction → `bid()` + `render()`
+2. **Handle null responses gracefully** — Don't break the user experience when no ad is available.
 
-3. **Handle null responses gracefully** — Don't break the user experience when no ad is available.
-
-4. **Fire impression url** — Use the `impUrl` when the ad becomes visible to properly track impressions.
+3. **Fire impression url** — Use the `impUrl` when the ad becomes visible to properly track impressions.
 
 ## License
 

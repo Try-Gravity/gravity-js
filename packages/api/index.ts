@@ -1,22 +1,20 @@
 export { Client, ClientParams } from './client';
 export type {
-  // v0 types (existing)
+  // Core types
   AdParams,
   AdResponse,
+  Ad,
   ApiErrorResponse,
   MessageObject,
   DeviceObject,
   UserObject,
   Role,
   Gender,
-  // v1 types (new)
-  AdRequestBaseV1,
-  ContextualAdParams,
+  // Alternative ad types (for advanced use cases)
+  AdRequestBase,
   SummaryAdParams,
   NonContextualAdParams,
   BidParams,
   RenderParams,
-  AdV1,
-  AdResponseV1,
   BidResponse,
 } from './types';

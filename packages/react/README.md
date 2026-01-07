@@ -23,7 +23,7 @@ function ChatMessage({ messages }) {
   const [ad, setAd] = useState(null);
 
   useEffect(() => {
-    client.contextualAd({ 
+    client.getAd({ 
       messages,
       sessionId: 'session-123',
       userId: 'user-456',
@@ -64,7 +64,7 @@ import { AdBanner } from '@gravity-ai/react';
 
 | Prop | Type | Default | Description |
 |------|------|---------|-------------|
-| `ad` | `AdResponse \| null` | required | A single ad object (e.g., `response.ads[0]`) |
+| `ad` | `Ad \| null` | required | A single ad object (e.g., `response.ads[0]`) |
 | `theme` | `'light' \| 'dark' \| 'minimal' \| 'branded'` | `'light'` | Visual theme preset |
 | `size` | `'small' \| 'medium' \| 'large' \| 'responsive'` | `'medium'` | Size preset |
 | `className` | `string` | - | Custom class name for container |
@@ -100,7 +100,7 @@ import { AdText } from '@gravity-ai/react';
 
 | Prop | Type | Default | Description |
 |------|------|---------|-------------|
-| `ad` | `AdResponse \| null` | required | A single ad object (e.g., `response.ads[0]`) |
+| `ad` | `Ad \| null` | required | A single ad object (e.g., `response.ads[0]`) |
 | `className` | `string` | - | Custom class name |
 | `style` | `CSSProperties` | - | Custom inline styles |
 | `fallback` | `ReactNode` | `null` | Content when ad is null |
@@ -161,7 +161,7 @@ function CustomAdComponent({ ad }) {
 Full TypeScript support with exported types:
 
 ```tsx
-import type { AdResponse, AdBannerProps, AdTheme, AdSize } from '@gravity-ai/react';
+import type { Ad, AdBannerProps, AdTheme, AdSize } from '@gravity-ai/react';
 ```
 
 ## License

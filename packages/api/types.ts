@@ -88,6 +88,8 @@ export interface UserObject {
  *     { role: 'user', content: 'What laptop should I buy?' },
  *     { role: 'assistant', content: 'What is your budget?' }
  *   ],
+ *   sessionId: 'session-123',
+ *   userId: 'user-456',
  *   user: { gender: 'male', age: '25-34' },
  *   device: { ip: '1.2.3.4', country: 'US', ua: 'Mozilla/5.0...' },
  *   excludedTopics: ['politics'],
@@ -96,10 +98,12 @@ export interface UserObject {
  * ```
  */
 export interface AdParams {
-  /** Override the client's API key for this request */
-  apiKey?: string;
   /** Array of conversation messages for contextual targeting (required) */
   messages: MessageObject[];
+  /** Session identifier for tracking user sessions */
+  sessionId?: string;
+  /** Unique user identifier */
+  userId?: string;
   /** Device and location information */
   device?: DeviceObject;
   /** User demographic and interest data */
@@ -108,6 +112,10 @@ export interface AdParams {
   excludedTopics?: string[];
   /** Minimum relevancy score threshold (0-1). Higher = more relevant but fewer ads */
   relevancy?: number | null;
+  /** Number of ads to return (1-3, default 1) */
+  numAds?: number;
+  /** Returns a test ad when true */
+  testAd?: boolean;
   /** 
    * Additional custom fields for publisher-specific targeting
    * @description Any additional key-value pairs will be passed to the API
@@ -116,36 +124,57 @@ export interface AdParams {
 }
 
 /**
+ * Single ad object in responses.
+ * @description Contains all ad creative and tracking data.
+ */
+export interface Ad {
+  /** The advertisement copy text */
+  adText: string;
+  /** Unique ad identifier */
+  adId: string;
+  /** Ad title */
+  title?: string;
+  /** Brand/advertiser name */
+  brandName?: string;
+  /** Brand logo image URL */
+  brandImage?: string;
+  /** Landing page URL */
+  url?: string;
+  /** Favicon URL */
+  favicon?: string;
+  /** Impression tracking URL */
+  impUrl?: string;
+  /** Click-through tracking URL */
+  clickUrl?: string;
+  /** Payout amount in USD */
+  payout?: number;
+}
+
+/**
  * Response from the Gravity API containing ad data
  * @description Returned by getAd() when a relevant advertisement is found
  * @example
  * ```typescript
- * const ad: AdResponse = {
- *   adText: 'Check out our amazing laptops!',
- *   impUrl: 'https://tracking.example.com/imp?id=123',
- *   clickUrl: 'https://example.com/laptops',
- *   payout: 0.50
+ * const response: AdResponse = {
+ *   ads: [{
+ *     adText: 'Check out our amazing laptops!',
+ *     adId: 'ad-123',
+ *     impUrl: 'https://tracking.example.com/imp?id=123',
+ *     clickUrl: 'https://example.com/laptops',
+ *     payout: 0.50
+ *   }],
+ *   numAds: 1,
+ *   totalPayout: 0.50
  * };
  * ```
  */
 export interface AdResponse {
-  /** The advertisement copy text to display to the user */
-  adText: string;
-  /** 
-   * Impression tracking URL - fire this when the ad is viewed
-   * @description Should be loaded (e.g., via image beacon) when ad becomes visible
-   */
-  impUrl?: string;
-  /** 
-   * Click-through URL - navigate user here when ad is clicked
-   * @description The destination page when the user clicks the ad
-   */
-  clickUrl?: string;
-  /** 
-   * Payout amount in USD for this ad impression
-   * @description The revenue earned for displaying this ad
-   */
-  payout?: number;
+  /** Array of ad objects */
+  ads: Ad[];
+  /** Number of ads returned */
+  numAds: number;
+  /** Total payout across all ads */
+  totalPayout?: number;
 }
 
 /**
@@ -162,14 +191,13 @@ export interface ApiErrorResponse {
 }
 
 // =============================================================================
-// v1 API Types
+// Alternative Ad Request Types (for advanced use cases)
 // =============================================================================
 
 /**
- * Base fields shared across all v1 ad requests.
- * @description Mirrors engine's AdRequestBaseV1. All fields are optional.
+ * Base fields shared across all ad requests.
  */
-export interface AdRequestBaseV1 {
+export interface AdRequestBase {
   /** Session identifier for tracking user sessions */
   sessionId?: string;
   /** Unique user identifier */
@@ -191,19 +219,10 @@ export interface AdRequestBaseV1 {
 }
 
 /**
- * POST /api/v1/ad/contextual
- * @description Requires messages array for contextual targeting.
- */
-export interface ContextualAdParams extends AdRequestBaseV1 {
-  /** Array of conversation messages (required) */
-  messages: MessageObject[];
-}
-
-/**
  * POST /api/v1/ad/summary
  * @description Requires queryString for summary-based targeting.
  */
-export interface SummaryAdParams extends AdRequestBaseV1 {
+export interface SummaryAdParams extends AdRequestBase {
   /** Search/summary query string (required) */
   queryString: string;
 }
@@ -212,7 +231,7 @@ export interface SummaryAdParams extends AdRequestBaseV1 {
  * POST /api/v1/ad/non-contextual
  * @description No context required - returns ads without context matching.
  */
-export interface NonContextualAdParams extends AdRequestBaseV1 {}
+export interface NonContextualAdParams extends AdRequestBase {}
 
 /**
  * POST /api/v1/bid
@@ -244,51 +263,11 @@ export interface RenderParams {
 }
 
 // =============================================================================
-// v1 Response Types
+// Bid/Render Types (for advanced two-phase flow)
 // =============================================================================
 
 /**
- * Single ad object in v1 responses.
- * @description Contains all ad creative and tracking data.
- */
-export interface AdV1 {
-  /** The advertisement copy text */
-  adText: string;
-  /** Unique ad identifier */
-  adId: string;
-  /** Ad title */
-  title?: string;
-  /** Brand/advertiser name */
-  brandName?: string;
-  /** Brand logo image URL */
-  brandImage?: string;
-  /** Landing page URL */
-  url?: string;
-  /** Favicon URL */
-  favicon?: string;
-  /** Impression tracking URL */
-  impUrl?: string;
-  /** Click-through tracking URL */
-  clickUrl?: string;
-  /** Payout amount in USD */
-  payout?: number;
-}
-
-/**
- * v1 ad response (multi-ad support).
- * @description Returned by contextual, summary, non-contextual, and render endpoints.
- */
-export interface AdResponseV1 {
-  /** Array of ad objects */
-  ads: AdV1[];
-  /** Number of ads returned */
-  numAds: number;
-  /** Total payout across all ads */
-  totalPayout?: number;
-}
-
-/**
- * v1 bid response.
+ * Bid response.
  * @description Returned by the bid endpoint.
  */
 export interface BidResponse {
