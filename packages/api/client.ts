@@ -3,12 +3,10 @@ import {
   AdParams,
   AdResponse,
   ApiErrorResponse,
-  ContextualAdParams,
   SummaryAdParams,
   NonContextualAdParams,
   BidParams,
   RenderParams,
-  AdResponseV1,
   BidResponse,
 } from './types';
 
@@ -62,13 +60,15 @@ const REQUEST_TIMEOUT = 10000;
  * 
  * const client = new Client('your-api-key');
  * 
- * const ad = await client.getAd({
+ * const response = await client.getAd({
  *   messages: [
  *     { role: 'user', content: 'What laptop should I buy?' }
- *   ]
+ *   ],
+ *   sessionId: 'session-123',
  * });
  * 
- * if (ad) {
+ * if (response) {
+ *   const ad = response.ads[0];
  *   console.log(ad.adText);
  * }
  * ```
@@ -137,7 +137,7 @@ export class Client {
   /**
    * Request a contextually relevant advertisement
    * 
-   * @description Fetches an ad based on the provided conversation context and targeting parameters.
+   * @description Fetches ads based on the provided conversation context and targeting parameters.
    * Returns `null` if no relevant ad is available or if an error occurs.
    * 
    * @param params - Ad request parameters including conversation messages
@@ -145,18 +145,27 @@ export class Client {
    * 
    * @example Basic request
    * ```typescript
-   * const ad = await client.getAd({
+   * const response = await client.getAd({
    *   messages: [
    *     { role: 'user', content: 'I need a new laptop for programming' },
    *     { role: 'assistant', content: 'What is your budget range?' }
-   *   ]
+   *   ],
+   *   sessionId: 'session-123',
+   *   userId: 'user-456',
    * });
+   * 
+   * if (response) {
+   *   const ad = response.ads[0];
+   *   console.log(ad.adText);
+   * }
    * ```
    * 
    * @example Full request with targeting
    * ```typescript
-   * const ad = await client.getAd({
+   * const response = await client.getAd({
    *   messages: [...],
+   *   sessionId: 'session-123',
+   *   userId: 'user-456',
    *   user: {
    *     uid: 'user-123',
    *     gender: 'male',
@@ -174,9 +183,10 @@ export class Client {
    * 
    * @example Handling the response
    * ```typescript
-   * const ad = await client.getAd({ messages });
+   * const response = await client.getAd({ messages, sessionId: '...' });
    * 
-   * if (ad) {
+   * if (response) {
+   *   const ad = response.ads[0];
    *   // Display the ad
    *   showAd(ad.adText);
    *   
@@ -189,77 +199,13 @@ export class Client {
    */
   async getAd(params: AdParams): Promise<AdResponse | null> {
     try {
-      // Build request body, merging request params with client defaults
-      const body: AdParams = {
-        ...params,
-        // Use request-level excludedTopics, or fall back to client-level
-        excludedTopics: params.excludedTopics ?? this.excludedTopics,
-        // Use request-level relevancy, or fall back to client-level
-        relevancy: params.relevancy ?? this.relevancy,
-      };
-
-      const response = await this.axios.post<AdResponse>('/ad', body);
-
-      // 204 No Content means no relevant ad was found
-      if (response.status === 204) {
-        return null;
-      }
-
-      // Validate response has required ad data
-      if (response.data && response.data.adText) {
-        return {
-          adText: response.data.adText,
-          impUrl: response.data.impUrl,
-          clickUrl: response.data.clickUrl,
-          payout: response.data.payout,
-        };
-      }
-
-      return null;
-    } catch (error) {
-      this.handleError(error, 'getAd');
-      return null;
-    }
-  }
-
-  // ===========================================================================
-  // v1 API Methods
-  // ===========================================================================
-
-  /**
-   * Request contextual advertisements (v1 API)
-   *
-   * @description Fetches ads based on conversation context. Requires messages array.
-   * Returns null if no relevant ad is available or on error.
-   *
-   * @param params - Request parameters including messages array
-   * @returns Promise resolving to AdResponseV1 or null if no ad available
-   *
-   * @example
-   * ```typescript
-   * const response = await client.contextualAd({
-   *   messages: [
-   *     { role: 'user', content: 'What laptop should I buy?' }
-   *   ],
-   *   sessionId: 'session-123',
-   *   userId: 'user-456',
-   * });
-   *
-   * if (response) {
-   *   const ad = response.ads[0];
-   *   console.log(ad.adText);
-   * }
-   * ```
-   */
-  async contextualAd(params: ContextualAdParams): Promise<AdResponseV1 | null> {
-    try {
       const body = {
         ...params,
         excludedTopics: params.excludedTopics ?? this.excludedTopics,
         relevancy: params.relevancy ?? this.relevancy,
       };
 
-      const response = await this.axios.post<AdResponseV1>('/api/v1/ad/contextual', body);
+      const response = await this.axios.post<AdResponse>('/api/v1/ad/contextual', body);
 
       if (response.status === 204) {
         return null;
@@ -271,34 +217,25 @@ export class Client {
 
       return null;
     } catch (error) {
-      this.handleError(error, 'contextualAd');
+      this.handleError(error, 'getAd');
       return null;
     }
   }
 
+  // ===========================================================================
+  // Alternative Ad Methods (for advanced use cases)
+  // ===========================================================================
+
   /**
-   * Request summary-based advertisements (v1 API)
+   * Request summary-based advertisements
    *
    * @description Fetches ads based on a search/summary query string.
    * Returns null if no relevant ad is available or on error.
    *
    * @param params - Request parameters including queryString
-   * @returns Promise resolving to AdResponseV1 or null if no ad available
-   *
-   * @example
-   * ```typescript
-   * const response = await client.summaryAd({
-   *   queryString: 'best laptops for programming 2025',
-   *   sessionId: 'session-123',
-   * });
-   *
-   * if (response) {
-   *   const ad = response.ads[0];
-   *   console.log(ad.adText);
-   * }
-   * ```
+   * @returns Promise resolving to AdResponse or null if no ad available
    */
-  async summaryAd(params: SummaryAdParams): Promise<AdResponseV1 | null> {
+  async summaryAd(params: SummaryAdParams): Promise<AdResponse | null> {
     try {
       const body = {
         ...params,
@@ -306,7 +243,7 @@ export class Client {
         relevancy: params.relevancy ?? this.relevancy,
       };
 
-      const response = await this.axios.post<AdResponseV1>('/api/v1/ad/summary', body);
+      const response = await this.axios.post<AdResponse>('/api/v1/ad/summary', body);
 
       if (response.status === 204) {
         return null;
@@ -324,34 +261,22 @@ export class Client {
   }
 
   /**
-   * Request non-contextual advertisements (v1 API)
+   * Request non-contextual advertisements
    *
    * @description Fetches ads without context matching. Useful for brand awareness placements.
    * Returns null if no ad is available or on error.
    *
    * @param params - Optional request parameters
-   * @returns Promise resolving to AdResponseV1 or null if no ad available
-   *
-   * @example
-   * ```typescript
-   * const response = await client.nonContextualAd({
-   *   sessionId: 'session-123',
-   *   numAds: 2,
-   * });
-   *
-   * if (response) {
-   *   response.ads.forEach(ad => console.log(ad.adText));
-   * }
-   * ```
+   * @returns Promise resolving to AdResponse or null if no ad available
    */
-  async nonContextualAd(params: NonContextualAdParams = {}): Promise<AdResponseV1 | null> {
+  async nonContextualAd(params: NonContextualAdParams = {}): Promise<AdResponse | null> {
     try {
       const body = {
         ...params,
         excludedTopics: params.excludedTopics ?? this.excludedTopics,
       };
 
-      const response = await this.axios.post<AdResponseV1>('/api/v1/ad/non-contextual', body);
+      const response = await this.axios.post<AdResponse>('/api/v1/ad/non-contextual', body);
 
       if (response.status === 204) {
         return null;
@@ -369,7 +294,7 @@ export class Client {
   }
 
   /**
-   * Request a bid price for contextual ad placement (v1 API)
+   * Request a bid price for contextual ad placement
    *
    * @description First phase of two-phase ad flow. Returns bid price and bidId.
    * Use the bidId with render() to generate the actual ad creative.
@@ -377,25 +302,6 @@ export class Client {
    *
    * @param params - Request parameters including messages array
    * @returns Promise resolving to BidResponse or null if no bid available
-   *
-   * @example
-   * ```typescript
-   * const bidResult = await client.bid({
-   *   messages: [
-   *     { role: 'user', content: 'I need help with my code' }
-   *   ],
-   *   sessionId: 'session-123',
-   * });
-   *
-   * if (bidResult) {
-   *   console.log(`Bid price: $${bidResult.bid} CPM`);
-   *   // Decide whether to show ad based on price...
-   *   const ad = await client.render({
-   *     bidId: bidResult.bidId,
-   *     realizedPrice: bidResult.bid,
-   *   });
-   * }
-   * ```
    */
   async bid(params: BidParams): Promise<BidResponse | null> {
     try {
@@ -421,31 +327,17 @@ export class Client {
   }
 
   /**
-   * Render an ad from a cached bid (v1 API)
+   * Render an ad from a cached bid
    *
    * @description Second phase of two-phase ad flow. Generates ad creative using cached bid context.
    * Returns null if bid expired (404) or on error. Bid expires after 60 seconds.
    *
    * @param params - Request parameters including bidId and realizedPrice
-   * @returns Promise resolving to AdResponseV1 or null if bid expired/error
-   *
-   * @example
-   * ```typescript
-   * // After getting a bid...
-   * const ad = await client.render({
-   *   bidId: bidResult.bidId,
-   *   realizedPrice: bidResult.bid,
-   * });
-   *
-   * if (ad) {
-   *   const firstAd = ad.ads[0];
-   *   displayAd(firstAd);
-   * }
-   * ```
+   * @returns Promise resolving to AdResponse or null if bid expired/error
    */
-  async render(params: RenderParams): Promise<AdResponseV1 | null> {
+  async render(params: RenderParams): Promise<AdResponse | null> {
     try {
-      const response = await this.axios.post<AdResponseV1>('/api/v1/render', params);
+      const response = await this.axios.post<AdResponse>('/api/v1/render', params);
 
       if (response.status === 204) {
         return null;
