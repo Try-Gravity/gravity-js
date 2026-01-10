@@ -23,10 +23,15 @@ function ChatMessage({ messages }) {
   const [ad, setAd] = useState(null);
 
   useEffect(() => {
-    client.getAd({ 
+    client.getAd({
       messages,
       sessionId: 'session-123',
+      numAds: 1,
+      ui: {
+        placements: [{ placement: 'below_response' }]
+      },
       userId: 'user-456',
+      testAd: true, // Use for testing (no impressions or clicks)
     }).then(res => setAd(res?.ads[0] || null));
   }, [messages]);
 

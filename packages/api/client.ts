@@ -65,6 +65,10 @@ const REQUEST_TIMEOUT = 10000;
  *     { role: 'user', content: 'What laptop should I buy?' }
  *   ],
  *   sessionId: 'session-123',
+ *   numAds: 1,
+ *   render_context: {
+ *     placements: [{ placement: 'below_response' }]
+ *   }
  * });
  * 
  * if (response) {
@@ -151,6 +155,10 @@ export class Client {
    *     { role: 'assistant', content: 'What is your budget range?' }
    *   ],
    *   sessionId: 'session-123',
+   *   numAds: 1,
+   *   render_context: {
+   *     placements: [{ placement: 'below_response' }]
+   *   },
    *   userId: 'user-456',
    * });
    * 
@@ -165,6 +173,11 @@ export class Client {
    * const response = await client.getAd({
    *   messages: [...],
    *   sessionId: 'session-123',
+   *   numAds: 1,
+   *   render_context: {
+   *     placements: [{ placement: 'below_response' }],
+   *     max_ad_length: 200
+   *   },
    *   userId: 'user-456',
    *   user: {
    *     uid: 'user-123',
@@ -183,7 +196,12 @@ export class Client {
    * 
    * @example Handling the response
    * ```typescript
-   * const response = await client.getAd({ messages, sessionId: '...' });
+   * const response = await client.getAd({
+   *   messages,
+   *   sessionId: '...',
+   *   numAds: 1,
+   *   render_context: { placements: [{ placement: 'below_response' }] }
+   * });
    * 
    * if (response) {
    *   const ad = response.ads[0];
@@ -266,10 +284,10 @@ export class Client {
    * @description Fetches ads without context matching. Useful for brand awareness placements.
    * Returns null if no ad is available or on error.
    *
-   * @param params - Optional request parameters
+   * @param params - Request parameters (sessionId required)
    * @returns Promise resolving to AdResponse or null if no ad available
    */
-  async nonContextualAd(params: NonContextualAdParams = {}): Promise<AdResponse | null> {
+  async nonContextualAd(params: NonContextualAdParams): Promise<AdResponse | null> {
     try {
       const body = {
         ...params,
