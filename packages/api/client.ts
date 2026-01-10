@@ -266,10 +266,10 @@ export class Client {
    * @description Fetches ads without context matching. Useful for brand awareness placements.
    * Returns null if no ad is available or on error.
    *
-   * @param params - Optional request parameters
+   * @param params - Request parameters (sessionId required)
    * @returns Promise resolving to AdResponse or null if no ad available
    */
-  async nonContextualAd(params: NonContextualAdParams = {}): Promise<AdResponse | null> {
+  async nonContextualAd(params: NonContextualAdParams): Promise<AdResponse | null> {
     try {
       const body = {
         ...params,

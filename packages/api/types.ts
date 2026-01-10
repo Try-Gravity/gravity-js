@@ -42,16 +42,18 @@ export interface MessageObject {
  * ```
  */
 export interface DeviceObject {
-  /** User's IP address for geo-targeting */
+  /** User's IP address for geo-targeting (required) */
   ip: string;
+  /** Browser user-agent string (optional for non-web publishers like IDEs, CLIs, mobile apps) */
+  ua?: string;
   /** ISO 3166-1 alpha-2 country code (e.g., 'US', 'GB', 'DE') */
-  country: string;
-  /** User agent string from the browser */
-  ua: string;
+  country?: string;
   /** Operating system name (e.g., 'macOS', 'Windows', 'iOS', 'Android') */
   os?: string;
   /** Identifier for Advertisers (mobile advertising ID) */
   ifa?: string;
+  /** Additional device properties (timezone, locale, browser, device_type, screen dimensions, etc.) */
+  [key: string]: string | number | boolean | undefined;
 }
 
 /**
@@ -68,7 +70,7 @@ export interface DeviceObject {
  * ```
  */
 export interface UserObject {
-  /** Unique user identifier for frequency capping and tracking */
+  /** Unique user identifier for improving ad relevance */
   uid?: string;
   /** User's gender for demographic targeting */
   gender?: Gender;
@@ -76,6 +78,8 @@ export interface UserObject {
   age?: string;
   /** Comma-separated keywords representing user interests */
   keywords?: string;
+  /** Additional user properties (email, subscription_tier, user_interests, company_size, etc.) */
+  [key: string]: string | string[] | number | boolean | Gender | undefined;
 }
 
 /**
@@ -88,8 +92,9 @@ export interface UserObject {
  *     { role: 'user', content: 'What laptop should I buy?' },
  *     { role: 'assistant', content: 'What is your budget?' }
  *   ],
- *   sessionId: 'session-123',
+ *   sessionId: 'session-123',  // Required
  *   userId: 'user-456',
+ *   testAd: true,
  *   user: { gender: 'male', age: '25-34' },
  *   device: { ip: '1.2.3.4', country: 'US', ua: 'Mozilla/5.0...' },
  *   excludedTopics: ['politics'],
@@ -100,8 +105,8 @@ export interface UserObject {
 export interface AdParams {
   /** Array of conversation messages for contextual targeting (required) */
   messages: MessageObject[];
-  /** Session identifier for tracking user sessions */
-  sessionId?: string;
+  /** Session identifier for ad relevance (required) */
+  sessionId: string;
   /** Unique user identifier */
   userId?: string;
   /** Device and location information */
@@ -198,8 +203,8 @@ export interface ApiErrorResponse {
  * Base fields shared across all ad requests.
  */
 export interface AdRequestBase {
-  /** Session identifier for tracking user sessions */
-  sessionId?: string;
+  /** Session identifier for ad relevance (required) */
+  sessionId: string;
   /** Unique user identifier */
   userId?: string;
   /** Device and location information */
@@ -241,8 +246,8 @@ export interface NonContextualAdParams extends AdRequestBase {}
 export interface BidParams {
   /** Array of conversation messages (required) */
   messages: MessageObject[];
-  /** Session identifier */
-  sessionId?: string;
+  /** Session identifier for ad relevance (required) */
+  sessionId: string;
   /** Unique user identifier */
   userId?: string;
   /** Chat/conversation identifier */

@@ -39,8 +39,9 @@ const response = await client.getAd({
     { role: 'user', content: 'What are some good hiking trails?' },
     { role: 'assistant', content: 'Here are some popular hiking trails...' }
   ],
-  sessionId: 'session-123',  // Recommended for better ad relevance
-  userId: 'user-456',        // Recommended for frequency capping
+  sessionId: 'session-123',  // Required
+  userId: 'user-456',        
+  testAd: true,              // Use for testing
 });
 
 if (response) {
@@ -62,21 +63,22 @@ const client = new Client('your-api-key');
 
 function ChatApp({ messages }) {
   const [ad, setAd] = useState(null);
-  
+
   useEffect(() => {
-    client.getAd({ 
+    client.getAd({
       messages,
-      sessionId: 'session-123',
+      sessionId: 'session-123',  // Required
       userId: 'user-456',
+      testAd: true,
     }).then(res => setAd(res?.ads[0] || null));
   }, [messages]);
 
   return (
     <div>
       {/* Your chat UI */}
-      <AdBanner 
-        ad={ad} 
-        theme="dark" 
+      <AdBanner
+        ad={ad}
+        theme="dark"
         size="medium"
         onImpression={() => console.log('Ad viewed')}
       />
@@ -87,24 +89,31 @@ function ChatApp({ messages }) {
 
 ## Migrating from v0
 
-If you're upgrading from a previous version, the `getAd()` response format has changed:
+If you're upgrading from a previous version, there are two key changes:
 
+**1. `sessionId` is now required**
 ```typescript
-// Before (v0)
+const response = await client.getAd({
+  messages: [...],
+  sessionId: 'session-123',  // Required in v1
+});
+```
+
+**2. Response format changed**
+```typescript
+// Before (v0) - single ad object
 const ad = await client.getAd({ messages });
 if (ad) {
   console.log(ad.adText);
 }
 
-// After (v1)
+// After (v1) - response with ads array
 const response = await client.getAd({ messages, sessionId: '...' });
 if (response) {
   const ad = response.ads[0];
   console.log(ad.adText);
 }
 ```
-
-The response is now an object with an `ads` array instead of a single ad object.
 
 ## API Methods
 
@@ -186,7 +195,7 @@ gravity-js/
 
 ### Should I pass `sessionId` and `userId`?
 
-**Yes!** These fields directly impact publisher revenue through better frequency capping and ad relevance. Always include them when available.
+**`sessionId` is required.** `userId` should always be included when available. Both directly impact publisher revenue through better ad relevance.
 
 ### How do I style the AdBanner to match my app?
 

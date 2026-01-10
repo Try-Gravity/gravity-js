@@ -2,6 +2,24 @@
 
 The official Node.js/TypeScript SDK for the Gravity AI advertising API. Fetch contextually relevant ads based on conversation content.
 
+## Table of Contents
+
+- [Installation](#installation)
+- [Quick Start](#quick-start)
+- [Migrating from v0](#migrating-from-v0)
+- [Client Configuration](#client-configuration)
+- [Integration Types](#integration-types)
+  - [Web](#web)
+  - [IDE / CLI](#ide--cli)
+  - [Mobile](#mobile)
+  - [General](#general)
+- [Response Types](#response-types)
+- [Error Handling](#error-handling)
+- [Using with React](#using-with-react)
+- [Best Practices](#best-practices)
+
+---
+
 ## Installation
 
 ```bash
@@ -9,6 +27,8 @@ npm install @gravity-ai/api
 ```
 
 > **Note:** Requires Node.js 18+
+
+---
 
 ## Quick Start
 
@@ -20,10 +40,10 @@ const client = new Client('your-api-key');
 const response = await client.getAd({
   messages: [
     { role: 'user', content: 'What are some good hiking trails?' },
-    { role: 'assistant', content: 'Here are some popular trails...' }
   ],
-  sessionId: 'session-123',  // Recommended
-  userId: 'user-456',        // Recommended
+  sessionId: 'session-123',  // Required
+  userId: 'user-456',
+  testAd: true,              // Use for testing
 });
 
 if (response) {
@@ -32,142 +52,296 @@ if (response) {
 }
 ```
 
+---
+
 ## Migrating from v0
 
-If you're upgrading from a previous version, the `getAd()` response format has changed:
+If you're upgrading from a previous version, there are two key changes:
 
+**1. `sessionId` is now required**
 ```typescript
-// Before (v0)
-const ad = await client.getAd({ messages });
-if (ad) {
-  console.log(ad.adText);
-}
-
-// After (v1)
-const response = await client.getAd({ messages, sessionId: '...' });
-if (response) {
-  const ad = response.ads[0];
-  console.log(ad.adText);
-}
+const response = await client.getAd({
+  messages: [...],
+  sessionId: 'session-123',  // Required in v1
+});
 ```
 
-The response is now an object with an `ads` array instead of a single ad object.
+**2. Response format changed**
+```typescript
+// Before (v0) - single ad object
+const ad = await client.getAd({ messages });
+
+// After (v1) - response with ads array
+const response = await client.getAd({ messages, sessionId: '...' });
+const ad = response?.ads[0];
+```
 
 ---
 
 ## Client Configuration
 
-### Basic Initialization
-
 ```typescript
 import { Client } from '@gravity-ai/api';
 
+// Basic
 const client = new Client('your-api-key');
-```
 
-### Advanced Configuration
-
-```typescript
-import { Client } from '@gravity-ai/api';
-
+// Advanced
 const client = new Client('your-api-key', {
-  // Topics to exclude globally (optional)
-  excludedTopics: ['politics', 'religion'],
-  
-  // Minimum relevancy threshold 0-1 (optional)
-  relevancy: 0.8,
+  excludedTopics: ['politics', 'religion'],  // Global exclusions
+  relevancy: 0.6,                            // Min relevancy threshold (0.1-1)
 });
 ```
-
-#### Configuration Options
 
 | Option | Type | Default | Description |
 |--------|------|---------|-------------|
 | `endpoint` | `string` | `'https://server.trygravity.ai'` | API endpoint URL |
 | `excludedTopics` | `string[]` | `[]` | Topics to exclude from ad matching |
-| `relevancy` | `number \| null` | `null` | Minimum relevancy score (0-1) |
+| `relevancy` | `number` | `null` | Minimum relevancy score (0.1-1) |
 
 ---
 
-## `getAd()` — Fetch Contextual Ads
+## Integration Types
 
-Fetch ads based on conversation context. Requires `messages` array.
+Choose the integration type that matches your application. All types share these **required fields**:
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `messages` | `MessageObject[]` | Conversation context. Array of `{role, content}` objects. |
+| `sessionId` | `string` | Session identifier for frequency capping. **Required.** |
+
+And these **recommended fields**:
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `userId` | `string` | Unique user identifier. |
+| `testAd` | `boolean` | Returns real ad without tracking. Use for testing. |
+
+---
+
+### Web
+
+**For:** Chat interfaces, AI assistants, web apps with conversational UI
+
+#### Additional Fields
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `device.ip` | `string` | IP address for geo-targeting. **Required when `device` included.** |
+| `device.ua` | `string` | User agent string. Enables browser/device detection. |
+| `device.browser` | `string` | `"chrome"`, `"safari"`, `"firefox"`. Enables browser targeting. |
+| `device.device_type` | `string` | `"desktop"`, `"mobile"`, `"tablet"`. |
+| `device.timezone` | `string` | IANA timezone (e.g., `"America/New_York"`). |
+| `device.locale` | `string` | Browser locale (e.g., `"en-US"`). |
+| `user.email` | `string` | User's email for identity matching. **Higher CPMs.** |
+| `user.subscription_tier` | `string` | `"free"`, `"pro"`, `"enterprise"`. Premium users = higher value. |
+| `web.referrer` | `string` | Referring URL. Enables traffic source targeting. |
+| `ui.max_ad_length` | `number` | Max characters for ad text. |
+| `ui.placement` | `string` | `"inline"`, `"sidebar"`, `"banner"`, `"start_of_response"`, `"end_of_response"` |
+
+#### Example
 
 ```typescript
 const response = await client.getAd({
   messages: [
-    { role: 'user', content: 'I need help finding a new laptop.' },
-    { role: 'assistant', content: 'What is your budget?' }
+    { role: 'user', content: 'What are the best practices for React performance?' }
   ],
-  sessionId: 'session-123',  // Recommended
-  userId: 'user-456',        // Recommended
-  numAds: 1,                 // 1-3, default 1
-});
-
-if (response) {
-  const ad = response.ads[0];
-  console.log(ad.adText);
-}
-```
-
-### Full Request with All Options
-
-```typescript
-const response = await client.getAd({
-  // Required: conversation messages
-  messages: [
-    { role: 'user', content: 'I need help finding a new laptop.' },
-    { role: 'assistant', content: 'What is your budget?' }
-  ],
-  
-  // Recommended: session/user tracking (improves ad relevance & revenue)
-  sessionId: 'session-123',
-  userId: 'user-456',
-  
-  // Optional: user information for targeting
+  sessionId: 'session-web-001',
+  userId: 'user-web-789',
+  testAd: true,
   user: {
-    uid: 'user-123',           // Unique user identifier
-    gender: 'male',            // 'male' | 'female' | 'other'
-    age: '25-34',              // Age range string
-    keywords: 'tech,gadgets',  // User interest keywords
+    email: 'webuser@example.com',
+    subscription_tier: 'pro'
   },
-  
-  // Optional: device information
   device: {
-    ip: '1.2.3.4',             // User IP address
-    country: 'US',             // ISO country code
-    ua: 'Mozilla/5.0...',      // User agent string
-    os: 'macOS',               // Operating system
-    ifa: 'device-ad-id',       // Advertising identifier
+    ip: '203.0.113.50',
+    ua: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/120.0.0.0',
+    browser: 'chrome',
+    device_type: 'desktop',
+    timezone: 'Europe/London',
+    locale: 'en-GB'
   },
-  
-  // Optional: ad request settings
-  excludedTopics: ['politics'],  // Topics to exclude
-  relevancy: 0.8,                // Min relevancy threshold (0-1)
-  numAds: 1,                     // Number of ads (1-3)
-  testAd: false,                 // Return test ad when true
-  
-  // Optional: custom fields (open-ended, passed to matching)
-  interests: ['coding', 'apple', 'software development'],
-  summary: 'User wants a laptop for software development',
+  web: {
+    referrer: 'https://google.com'
+  },
+  ui: {
+    max_ad_length: 200,
+    placement: 'sidebar'
+  }
 });
 ```
 
 ---
 
-## Request Parameters
+### IDE / CLI
 
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `messages` | `MessageObject[]` | Yes | Conversation history |
-| `sessionId` | `string` | Recommended | Session identifier for tracking |
-| `userId` | `string` | Recommended | User identifier for frequency capping |
-| `device` | `DeviceObject` | - | Device/location info |
-| `user` | `UserObject` | - | User targeting info |
-| `excludedTopics` | `string[]` | - | Topics to exclude |
-| `relevancy` | `number` | - | Min relevancy (0-1) |
-| `numAds` | `number` | - | Number of ads (1-3, default 1) |
-| `testAd` | `boolean` | - | Return test ad when true |
+**For:** Cursor, Claude Code, GitHub Copilot, Windsurf, VS Code extensions, terminal tools
+
+#### Additional Fields
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `device.ip` | `string` | IP address for geo-targeting. **Required when `device` included.** |
+| `device.os` | `string` | `"macos"`, `"windows"`, `"linux"`. |
+| `device.timezone` | `string` | IANA timezone (e.g., `"America/New_York"`). |
+| `device.locale` | `string` | Locale (e.g., `"en-US"`). |
+| `user.email` | `string` | User's email for identity matching. **Higher CPMs.** |
+| `ide.name` | `string` | IDE name: `"cursor"`, `"vscode"`, `"intellij"`. |
+| `ide.version` | `string` | IDE version. |
+| `ide.extension_version` | `string` | Your extension version. |
+| `ide.active_language` | `string` | Current file language (e.g., `"typescript"`). |
+| `ui.max_ad_length` | `number` | Max characters for ad text. |
+| `ui.placement` | `string` | `"inline"`, `"banner"`, `"start_of_response"`, `"end_of_response"` |
+| `ui.dark_mode` | `boolean` | Whether dark mode is active. |
+| `ui.supports_markdown` | `boolean` | Whether markdown rendering is supported. |
+| `ui.supports_links` | `boolean` | Whether clickable links are supported. |
+
+#### Example
+
+```typescript
+const response = await client.getAd({
+  messages: [
+    { role: 'user', content: 'How do I set up authentication in my Express app?' }
+  ],
+  sessionId: 'session-ide-001',
+  userId: 'user-dev-123',
+  testAd: true,
+  user: {
+    uid: 'usr_dev123',
+    email: 'developer@example.com'
+  },
+  device: {
+    ip: '192.168.1.100',
+    os: 'macos',
+    timezone: 'America/New_York',
+    locale: 'en-US'
+  },
+  ide: {
+    name: 'cursor',
+    version: '0.40.0',
+    extension_version: '1.2.3',
+    active_language: 'typescript'
+  },
+  ui: {
+    max_ad_length: 150,
+    placement: 'end_of_response',
+    dark_mode: true,
+    supports_markdown: true,
+    supports_links: true
+  }
+});
+```
+
+---
+
+### Mobile
+
+**For:** iOS apps, Android apps, React Native, Flutter
+
+#### Additional Fields
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `device.ip` | `string` | IP address for geo-targeting. **Required when `device` included.** |
+| `device.ua` | `string` | User agent (e.g., `"MyApp/2.1.0 (iPhone; iOS 17.2)"`). |
+| `device.os` | `string` | `"iOS"` or `"Android"`. Enables platform-specific ads. |
+| `device.os_version` | `string` | OS version (e.g., `"17.2"`). |
+| `device.device_model` | `string` | Device model (e.g., `"iPhone 15 Pro"`). |
+| `device.ifa` | `string` | IDFA/GAID for cross-app attribution. **Higher CPMs.** |
+| `device.timezone` | `string` | IANA timezone. |
+| `device.locale` | `string` | Device locale. |
+| `device.connection_type` | `string` | `"wifi"`, `"cellular"`, `"offline"`. |
+| `user.email` | `string` | User's email for identity matching. **Higher CPMs.** |
+| `user.subscription_tier` | `string` | `"free"`, `"premium"`. Premium users = higher value. |
+| `user.user_created_at` | `string` | Account creation date. New vs established users. |
+| `user.user_interests` | `string[]` | User interests for targeting. |
+| `app.version` | `string` | Your app version. |
+| `ui.max_ad_length` | `number` | Max characters for ad text. |
+| `ui.placement` | `string` | `"inline"`, `"banner"`, `"interstitial"`, `"start_of_response"`, `"end_of_response"` |
+| `ui.dark_mode` | `boolean` | Whether dark mode is active. |
+| `ui.supports_images` | `boolean` | Whether images can be displayed. |
+| `ui.supports_cta_button` | `boolean` | Whether CTA buttons are supported. |
+
+#### Example
+
+```typescript
+const response = await client.getAd({
+  messages: [
+    { role: 'assistant', content: 'I found several Italian restaurants nearby.' },
+    { role: 'user', content: 'Which one has the best pasta?' }
+  ],
+  sessionId: 'session-mobile-001',
+  userId: 'user-app-456',
+  testAd: true,
+  user: {
+    uid: 'usr_mobile456',
+    email: 'user@example.com',
+    subscription_tier: 'premium',
+    user_created_at: '2023-06-15T00:00:00Z',
+    user_interests: ['food', 'dining', 'travel']
+  },
+  device: {
+    ip: '10.0.0.50',
+    ua: 'MyApp/2.1.0 (iPhone; iOS 17.2)',
+    os: 'iOS',
+    os_version: '17.2',
+    device_model: 'iPhone 15 Pro',
+    ifa: '6D92078A-8246-4BA4-AE5B-76104861E7DC',
+    timezone: 'America/Los_Angeles',
+    locale: 'en-US',
+    connection_type: 'wifi'
+  },
+  app: {
+    version: '2.1.0'
+  },
+  ui: {
+    max_ad_length: 120,
+    placement: 'inline',
+    dark_mode: false,
+    supports_images: true,
+    supports_cta_button: true
+  }
+});
+```
+
+---
+
+### General
+
+**For:** Any integration not covered above. Start here if unsure.
+
+#### Additional Fields
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `device.ip` | `string` | IP address for geo-targeting. **Required when `device` included.** |
+| `device.timezone` | `string` | IANA timezone. Enables time-based targeting. |
+| `device.locale` | `string` | Locale. Enables localized ads. |
+| `user.email` | `string` | User's email for identity matching. **Higher CPMs.** |
+| `ui.max_ad_length` | `number` | Max characters for ad text. |
+| `ui.placement` | `string` | `"inline"`, `"sidebar"`, `"banner"`, `"start_of_response"`, `"end_of_response"` |
+
+#### Example
+
+```typescript
+const response = await client.getAd({
+  messages: [
+    { role: 'user', content: 'Where can I buy marathon gear?' }
+  ],
+  sessionId: 'session-general-001',
+  userId: 'user-general-123',
+  testAd: true,
+  device: {
+    ip: '192.168.1.1',
+    timezone: 'America/New_York',
+    locale: 'en-US'
+  },
+  ui: {
+    max_ad_length: 200,
+    placement: 'end_of_response'
+  }
+});
+```
 
 ---
 
@@ -175,11 +349,9 @@ const response = await client.getAd({
 
 ### AdResponse
 
-Returned by `getAd()`.
-
 ```typescript
 interface AdResponse {
-  ads: Ad[];           // Array of ads
+  ads: Ad[];             // Array of ads
   numAds: number;        // Number of ads returned
   totalPayout?: number;  // Total payout across all ads
 }
@@ -192,17 +364,13 @@ interface Ad {
   brandImage?: string;   // Brand logo URL
   url?: string;          // Landing page URL
   favicon?: string;      // Favicon URL
-  impUrl?: string;       // Impression tracking URL
-  clickUrl?: string;     // Click-through URL
-  payout?: number;       // Payout amount
+  impUrl?: string;       // Impression tracking URL (null for testAd)
+  clickUrl?: string;     // Click-through URL (null for testAd)
+  payout?: number;       // Payout amount (null for testAd)
 }
 ```
 
----
-
-## Common Types
-
-### Message Object
+### Common Types
 
 ```typescript
 interface MessageObject {
@@ -211,68 +379,43 @@ interface MessageObject {
 }
 ```
 
-### User Object
-
-```typescript
-interface UserObject {
-  uid?: string;                              // Unique user ID
-  gender?: 'male' | 'female' | 'other';      // User gender
-  age?: string;                              // Age range (e.g., '25-34')
-  keywords?: string;                         // Interest keywords
-}
-```
-
-### Device Object
-
-```typescript
-interface DeviceObject {
-  ip: string;          // IP address
-  country: string;     // ISO country code
-  ua: string;          // User agent
-  os?: string;         // Operating system
-  ifa?: string;        // Advertising ID
-}
-```
-
 ---
 
 ## Error Handling
 
-The client handles errors gracefully and returns `null` on failure. Errors are logged to the console.
+The client returns `null` on failure. Errors are logged to console.
 
 ```typescript
-const response = await client.getAd({ messages, sessionId: '...' });
+const response = await client.getAd({
+  messages,
+  sessionId: 'session-123',
+});
 
 // Returns null on:
 // - Network errors
-// - API errors (4xx, 5xx)
-// - No relevant ad (204)
-// - Invalid response data
+// - 401: Invalid API key
+// - 422: Validation error (e.g., missing sessionId)
+// - 204: No relevant ad found
+// - 429: Rate limit exceeded
 
 if (!response) {
   // Handle gracefully - don't break the user experience
 }
 ```
 
-## TypeScript
+| Status | Meaning |
+|--------|---------|
+| `200` | Ad(s) matched and returned successfully |
+| `204` | No matching ads found (null response) |
+| `401` | Invalid or missing API key |
+| `422` | Validation error (e.g., missing `sessionId`) |
+| `429` | Rate limit exceeded |
 
-Full TypeScript support with exported types:
-
-```typescript
-import { Client, ClientParams } from '@gravity-ai/api';
-import type { 
-  AdParams,
-  Ad,
-  AdResponse,
-  MessageObject, 
-  DeviceObject, 
-  UserObject,
-} from '@gravity-ai/api';
-```
+---
 
 ## Using with React
 
-For React applications, consider using the companion package `@gravity-ai/react` which provides ready-to-use components with automatic tracking:
+For React applications, use the companion package `@gravity-ai/react`:
 
 ```bash
 npm install @gravity-ai/api @gravity-ai/react
@@ -286,12 +429,13 @@ const client = new Client('your-api-key');
 
 function ChatApp() {
   const [ad, setAd] = useState(null);
-  
+
   useEffect(() => {
-    client.getAd({ 
+    client.getAd({
       messages,
       sessionId: 'session-123',
       userId: 'user-456',
+      testAd: true,
     }).then(res => setAd(res?.ads[0] || null));
   }, [messages]);
 
@@ -299,13 +443,43 @@ function ChatApp() {
 }
 ```
 
+---
+
 ## Best Practices
 
-1. **Always include `sessionId` and `userId`** — These directly impact publisher revenue through better frequency capping and ad relevance.
+1. **`sessionId` is required** — Enables frequency capping and improves ad relevance.
 
-2. **Handle null responses gracefully** — Don't break the user experience when no ad is available.
+2. **Include `userId` when available** — Improves targeting and increases CPMs.
 
-3. **Fire impression url** — Use the `impUrl` when the ad becomes visible to properly track impressions.
+3. **Use `testAd: true` during development** — Prevents generating real impressions or clicks.
+
+4. **Handle null responses gracefully** — Don't break the UX when no ad is available.
+
+5. **Fire `impUrl` when the ad is visible** — Required for proper impression tracking.
+
+6. **Include `device.ip` for geo-targeting** — Enables location-based ads and higher CPMs.
+
+7. **Include `user.email` when available** — Enables identity matching for significantly higher CPMs.
+
+---
+
+## TypeScript
+
+Full TypeScript support with exported types:
+
+```typescript
+import { Client } from '@gravity-ai/api';
+import type {
+  AdParams,
+  Ad,
+  AdResponse,
+  MessageObject,
+  DeviceObject,
+  UserObject,
+} from '@gravity-ai/api';
+```
+
+---
 
 ## License
 
