@@ -11,6 +11,66 @@ export type Role = 'user' | 'assistant';
 export type Gender = 'male' | 'female' | 'other';
 
 /**
+ * Placement positions for ad rendering
+ * @description Specifies where ads should appear relative to the AI response
+ */
+export type Placement =
+  | 'above_response'
+  | 'below_response'
+  | 'inline_response'
+  | 'left_response'
+  | 'right_response';
+
+/**
+ * Individual ad placement specification
+ * @description Defines a single ad slot with its position and optional tracking ID
+ * @example
+ * ```typescript
+ * const placement: PlacementObject = {
+ *   placement: 'below_response',
+ *   placement_id: 'sidebar-1'
+ * };
+ * ```
+ */
+export interface PlacementObject {
+  /** Position where the ad should appear (required) */
+  placement: Placement;
+  /** Optional tracking ID for this specific ad slot */
+  placement_id?: string;
+}
+
+/**
+ * Describes how your app will display the ad
+ * @description Contains placement array and rendering capabilities for ad customization
+ * @example
+ * ```typescript
+ * const renderContext: RenderContextObject = {
+ *   placements: [
+ *     { placement: 'below_response' },
+ *     { placement: 'right_response', placement_id: 'sidebar' }
+ *   ],
+ *   max_ad_length: 200
+ * };
+ * ```
+ */
+export interface RenderContextObject {
+  /** Where you plan to show the ad(s). Array of 1-3 placements, must match numAds. */
+  placements: PlacementObject[];
+  /** Character limit you can display, so we don't send copy that gets truncated */
+  max_ad_length?: number;
+  /** Whether you can render markdown-formatted text */
+  supports_markdown?: boolean;
+  /** Whether you can render clickable links */
+  supports_links?: boolean;
+  /** Whether you can display images (brand logos, product images) */
+  supports_images?: boolean;
+  /** Whether you can render CTA buttons */
+  supports_cta_button?: boolean;
+  /** Additional render context properties (supports JSON objects) */
+  [key: string]: PlacementObject[] | string | number | boolean | object | null | undefined;
+}
+
+/**
  * Represents a single message in a conversation
  * @description Used to provide conversation context for contextual ad targeting
  * @example
@@ -92,7 +152,11 @@ export interface UserObject {
  *     { role: 'user', content: 'What laptop should I buy?' },
  *     { role: 'assistant', content: 'What is your budget?' }
  *   ],
- *   sessionId: 'session-123',  // Required
+ *   sessionId: 'session-123',
+ *   numAds: 1,
+ *   render_context: {
+ *     placements: [{ placement: 'below_response' }]
+ *   },
  *   userId: 'user-456',
  *   testAd: true,
  *   user: { gender: 'male', age: '25-34' },
@@ -107,6 +171,10 @@ export interface AdParams {
   messages: MessageObject[];
   /** Session identifier for ad relevance (required) */
   sessionId: string;
+  /** Render context with placements array (required). Length of placements must match numAds. */
+  render_context: RenderContextObject;
+  /** Number of ads to return (1-3). Must match render_context.placements length. */
+  numAds?: number;
   /** Unique user identifier */
   userId?: string;
   /** Device and location information */
@@ -117,11 +185,9 @@ export interface AdParams {
   excludedTopics?: string[];
   /** Minimum relevancy score threshold (0-1). Higher = more relevant but fewer ads */
   relevancy?: number | null;
-  /** Number of ads to return (1-3, default 1) */
-  numAds?: number;
   /** Returns a test ad when true */
   testAd?: boolean;
-  /** 
+  /**
    * Additional custom fields for publisher-specific targeting
    * @description Any additional key-value pairs will be passed to the API
    */
@@ -205,6 +271,10 @@ export interface ApiErrorResponse {
 export interface AdRequestBase {
   /** Session identifier for ad relevance (required) */
   sessionId: string;
+  /** Render context with placements array (required). Length of placements must match numAds. */
+  render_context: RenderContextObject;
+  /** Number of ads to return (1-3). Must match render_context.placements length. */
+  numAds?: number;
   /** Unique user identifier */
   userId?: string;
   /** Device and location information */
@@ -215,8 +285,6 @@ export interface AdRequestBase {
   excludedTopics?: string[];
   /** Minimum relevancy score threshold (0-1) */
   relevancy?: number | null;
-  /** Number of ads to return (1-3, default 1) */
-  numAds?: number;
   /** Returns a test ad when true */
   testAd?: boolean;
   /** Additional custom fields */
@@ -241,13 +309,16 @@ export interface NonContextualAdParams extends AdRequestBase {}
 /**
  * POST /api/v1/bid
  * @description Two-phase bid request. Returns bid price and bidId.
- * @note Does NOT extend AdRequestBaseV1 - has its own field set.
  */
 export interface BidParams {
   /** Array of conversation messages (required) */
   messages: MessageObject[];
   /** Session identifier for ad relevance (required) */
   sessionId: string;
+  /** Render context with placements array (required). Length of placements must match numAds. */
+  render_context: RenderContextObject;
+  /** Number of ads to return (1-3). Must match render_context.placements length. */
+  numAds?: number;
   /** Unique user identifier */
   userId?: string;
   /** Chat/conversation identifier */

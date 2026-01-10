@@ -8,6 +8,9 @@ export type {
   MessageObject,
   DeviceObject,
   UserObject,
+  RenderContextObject,
+  PlacementObject,
+  Placement,
   Role,
   Gender,
   // Alternative ad types (for advanced use cases)
