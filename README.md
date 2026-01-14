@@ -34,18 +34,18 @@ import { Client } from '@gravity-ai/api';
 
 const client = new Client('your-api-key');
 
-const response = await client.getAd({
+const ads = await client.getAd({
   messages: [
     { role: 'user', content: 'What are some good hiking trails?' },
     { role: 'assistant', content: 'Here are some popular hiking trails...' }
   ],
-  sessionId: 'session-123',  // Required
-  userId: 'user-456',        
-  testAd: true,              // Use for testing
+  sessionId: 'session-123',
+  placements: [{ placement: 'below_response', placement_id: 'main-ad' }],
+  testAd: true,
 });
 
-if (response) {
-  const ad = response.ads[0];
+if (ads) {
+  const ad = ads[0];
   console.log(ad.adText);    // The ad copy
   console.log(ad.clickUrl);  // Click-through URL
   console.log(ad.impUrl);    // Impression tracking URL
@@ -67,10 +67,10 @@ function ChatApp({ messages }) {
   useEffect(() => {
     client.getAd({
       messages,
-      sessionId: 'session-123',  // Required
-      userId: 'user-456',
+      sessionId: 'session-123',
+      placements: [{ placement: 'below_response', placement_id: 'main-ad' }],
       testAd: true,
-    }).then(res => setAd(res?.ads[0] || null));
+    }).then(ads => setAd(ads?.[0] || null));
   }, [messages]);
 
   return (
@@ -89,28 +89,28 @@ function ChatApp({ messages }) {
 
 ## Migrating from v0
 
-If you're upgrading from a previous version, there are two key changes:
+If you're upgrading from a previous version, there are three key changes:
 
 **1. `sessionId` is now required**
-```typescript
-const response = await client.getAd({
-  messages: [...],
-  sessionId: 'session-123',  // Required in v1
-});
-```
 
-**2. Response format changed**
+**2. `placements` array is now required** (with `placement_id` for each placement)
+
+**3. Response is now a flat `Ad[]` array**
 ```typescript
-// Before (v0) - single ad object
+// Before (v0)
 const ad = await client.getAd({ messages });
 if (ad) {
   console.log(ad.adText);
 }
 
-// After (v1) - response with ads array
-const response = await client.getAd({ messages, sessionId: '...' });
-if (response) {
-  const ad = response.ads[0];
+// After (v1)
+const ads = await client.getAd({
+  messages,
+  sessionId: 'session-123',
+  placements: [{ placement: 'below_response', placement_id: 'main-ad' }]
+});
+if (ads) {
+  const ad = ads[0];
   console.log(ad.adText);
 }
 ```
@@ -119,7 +119,7 @@ if (response) {
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| `getAd()` | `/api/v1/ad/contextual` | Contextual ads based on conversation messages |
+| `getAd()` | `/api/v1/ad` | Contextual ads based on conversation messages |
 
 ## Documentation
 
@@ -193,9 +193,9 @@ gravity-js/
 
 ## FAQ
 
-### Should I pass `sessionId` and `userId`?
+### What parameters are required?
 
-**`sessionId` is required.** `userId` should always be included when available. Both directly impact publisher revenue through better ad relevance.
+**`sessionId` and `placements` are required.** Each placement must include a `placement_id`. `userId` should always be included when available for better ad relevance and higher CPMs.
 
 ### How do I style the AdBanner to match my app?
 

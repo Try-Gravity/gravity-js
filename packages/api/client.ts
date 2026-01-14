@@ -191,7 +191,7 @@ export class Client {
         relevancy: params.relevancy ?? this.relevancy,
       };
 
-      const response = await this.axios.post<Ad[]>('/api/v1/ad/contextual', body);
+      const response = await this.axios.post<Ad[]>('/api/v1/ad', body);
 
       if (response.status === 204) {
         return null;
