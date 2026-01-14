@@ -42,27 +42,56 @@ A simple Node.js script to test the API client.
 ### Expected Output
 
 ```
-🚀 Testing Gravity API Client (v1)...
+Testing Gravity API Client...
 
-✅ Contextual ad received!
+Response: [
+  {
+    adText: 'Check out our amazing laptops...',
+    title: 'Dell XPS 15',
+    cta: 'Shop Now',
+    brandName: 'Dell',
+    url: 'https://example.com/laptops',
+    impUrl: 'https://tracking.example.com/imp?id=123',
+    clickUrl: 'https://tracking.example.com/click?id=123'
+  }
+]
 
-📝 Ad Text: Check out our amazing laptops...
-🔗 Click URL: https://example.com/laptops
-📊 Impression URL: https://tracking.example.com/imp?id=123
-💰 Payout: $0.50
-📦 Total Ads: 1
+Got 1 ad(s)
 ```
 
-### Available v1 Methods
+### API Usage
 
-The test script can demonstrate all v1 API methods:
+The SDK provides a single `getAd()` method for contextual ads:
 
-| Method | Description |
-|--------|-------------|
-| `client.contextualAd()` | Contextual ads based on messages |
-| `client.summaryAd()` | Ads based on query string |
-| `client.nonContextualAd()` | Non-contextual ads |
-| `client.bid()` + `client.render()` | Two-phase auction flow |
+```typescript
+import { Client } from '@gravity-ai/api';
+
+const client = new Client('your-api-key');
+
+const ads = await client.getAd({
+  messages: [
+    { role: 'user', content: 'What laptop should I buy?' },
+    { role: 'assistant', content: 'What is your budget?' }
+  ],
+  sessionId: 'session-123',
+  placements: [{ placement: 'below_response', placement_id: 'main-ad' }],
+  userId: 'user-456',  // optional
+  device: { ip: '1.2.3.4' },  // optional
+  excludedTopics: ['gambling'],  // optional
+  relevancy: 0.5  // optional, 0-1
+});
+
+if (ads) {
+  const ad = ads[0];
+  console.log(ad.adText);
+
+  // Fire impression when ad is displayed
+  if (ad.impUrl) new Image().src = ad.impUrl;
+
+  // Use clickUrl for the ad link
+  window.open(ad.clickUrl);
+}
+```
 
 ---
 
@@ -130,7 +159,7 @@ For the API test, you need a valid Gravity API key. Create a `.env` file:
 API_KEY=your-api-key-here
 ```
 
-> ⚠️ Never commit your `.env` file - it's already in `.gitignore`
+> Never commit your `.env` file - it's already in `.gitignore`
 
 ### React Test Mock Data
 
@@ -143,22 +172,29 @@ import { Client } from '@gravity-ai/api';
 
 const client = new Client('your-api-key');
 
-// In your component (v1 API):
+// In your component:
 useEffect(() => {
-  client.contextualAd({ 
+  client.getAd({
     messages,
     sessionId: 'session-123',
-    userId: 'user-456',
-  }).then(res => setAd(res?.ads[0] || null));
-}, []);
-
-// Or using summary-based targeting:
-useEffect(() => {
-  client.summaryAd({ 
-    queryString: 'best laptops for developers',
-    sessionId: 'session-123',
-    userId: 'user-456',
-  }).then(res => setAd(res?.ads[0] || null));
+    placements: [{ placement: 'below_response', placement_id: 'main-ad' }]
+  }).then(ads => setAd(ads?.[0] || null));
 }, []);
 ```
 
+### Ad Response Shape
+
+The API returns a flat array of ads:
+
+```typescript
+interface Ad {
+  adText: string;        // The ad copy
+  title?: string;        // Ad title
+  cta?: string;          // Call-to-action (e.g., 'Learn More')
+  brandName?: string;    // Brand name
+  url?: string;          // Landing page URL
+  favicon?: string;      // Favicon URL
+  impUrl?: string;       // Fire this URL when ad is displayed
+  clickUrl?: string;     // Use as href for ad clicks
+}
+```

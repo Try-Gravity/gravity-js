@@ -47,35 +47,37 @@ describe('Gravity Client', () => {
 
   it('should return ad response when API returns success', async () => {
     const mockResponse = {
-        data: {
+        data: [{
             adText: 'Buy our product!',
             impUrl: 'http://imp.url',
-            clickUrl: 'http://click.url',
-            payout: 0.5
-        },
+            clickUrl: 'http://click.url'
+        }],
         status: 200
     };
     mockPost.mockResolvedValue(mockResponse);
 
     const params: AdParams = {
-        messages: [{ role: 'user', content: 'hello' }]
+        messages: [{ role: 'user', content: 'hello' }],
+        sessionId: 'test-session',
+        placements: [{ placement: 'below_response', placement_id: 'main' }]
     };
 
     const result = await client.getAd(params);
-    
-    expect(result).toEqual({
+
+    expect(result).toEqual([{
         adText: 'Buy our product!',
         impUrl: 'http://imp.url',
-        clickUrl: 'http://click.url',
-        payout: 0.5
-    });
+        clickUrl: 'http://click.url'
+    }]);
   });
 
   it('should return null when API returns 204 (no content)', async () => {
     mockPost.mockResolvedValue({ status: 204 });
 
     const params: AdParams = {
-        messages: [{ role: 'user', content: 'hello' }]
+        messages: [{ role: 'user', content: 'hello' }],
+        sessionId: 'test-session',
+        placements: [{ placement: 'below_response', placement_id: 'test-slot' }]
     };
 
     const result = await client.getAd(params);
@@ -97,14 +99,16 @@ describe('Gravity Client', () => {
     mockPost.mockRejectedValue(error);
 
     const params: AdParams = {
-        messages: [{ role: 'user', content: 'hello' }]
+        messages: [{ role: 'user', content: 'hello' }],
+        sessionId: 'test-session',
+        placements: [{ placement: 'below_response', placement_id: 'test-slot' }]
     };
 
     const result = await client.getAd(params);
-    
+
     expect(result).toBeNull();
     expect(consoleSpy).toHaveBeenCalled();
-    
+
     consoleSpy.mockRestore();
   });
 });

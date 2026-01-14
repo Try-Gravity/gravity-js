@@ -26,7 +26,6 @@ describe('AdBanner', () => {
     adText: 'Check out our amazing product!',
     impUrl: 'https://tracking.example.com/imp',
     clickUrl: 'https://example.com/landing',
-    payout: 0.5,
   };
 
   it('renders ad text when ad is provided', () => {
