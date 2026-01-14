@@ -35,39 +35,8 @@ export type Placement =
 export interface PlacementObject {
   /** Position where the ad should appear (required) */
   placement: Placement;
-  /** Optional tracking ID for this specific ad slot */
-  placement_id?: string;
-}
-
-/**
- * Describes how your app will display the ad
- * @description Contains placement array and rendering capabilities for ad customization
- * @example
- * ```typescript
- * const renderContext: RenderContextObject = {
- *   placements: [
- *     { placement: 'below_response' },
- *     { placement: 'right_response', placement_id: 'sidebar' }
- *   ],
- *   max_ad_length: 200
- * };
- * ```
- */
-export interface RenderContextObject {
-  /** Where you plan to show the ad(s). Array of 1-3 placements, must match numAds. */
-  placements: PlacementObject[];
-  /** Character limit you can display, so we don't send copy that gets truncated */
-  max_ad_length?: number;
-  /** Whether you can render markdown-formatted text */
-  supports_markdown?: boolean;
-  /** Whether you can render clickable links */
-  supports_links?: boolean;
-  /** Whether you can display images (brand logos, product images) */
-  supports_images?: boolean;
-  /** Whether you can render CTA buttons */
-  supports_cta_button?: boolean;
-  /** Additional render context properties (supports JSON objects) */
-  [key: string]: PlacementObject[] | string | number | boolean | object | null | undefined;
+  /** Tracking ID for this specific ad slot (required) */
+  placement_id: string;
 }
 
 /**
@@ -153,14 +122,10 @@ export interface UserObject {
  *     { role: 'assistant', content: 'What is your budget?' }
  *   ],
  *   sessionId: 'session-123',
- *   numAds: 1,
- *   render_context: {
- *     placements: [{ placement: 'below_response' }]
- *   },
+ *   placements: [{ placement: 'below_response' }],
  *   userId: 'user-456',
- *   testAd: true,
  *   user: { gender: 'male', age: '25-34' },
- *   device: { ip: '1.2.3.4', country: 'US', ua: 'Mozilla/5.0...' },
+ *   device: { ip: '1.2.3.4', country: 'US' },
  *   excludedTopics: ['politics'],
  *   relevancy: 0.5
  * };
@@ -171,10 +136,8 @@ export interface AdParams {
   messages: MessageObject[];
   /** Session identifier for ad relevance (required) */
   sessionId: string;
-  /** Render context with placements array (required). Length of placements must match numAds. */
-  render_context: RenderContextObject;
-  /** Number of ads to return (1-3). Must match render_context.placements length. */
-  numAds?: number;
+  /** Ad placement specifications (required). Array of 1-10 placements. */
+  placements: PlacementObject[];
   /** Unique user identifier */
   userId?: string;
   /** Device and location information */
@@ -185,7 +148,7 @@ export interface AdParams {
   excludedTopics?: string[];
   /** Minimum relevancy score threshold (0-1). Higher = more relevant but fewer ads */
   relevancy?: number | null;
-  /** Returns a test ad when true */
+  /** Returns a test ad when true (no billing, for integration testing) */
   testAd?: boolean;
   /**
    * Additional custom fields for publisher-specific targeting
@@ -196,56 +159,37 @@ export interface AdParams {
 
 /**
  * Single ad object in responses.
- * @description Contains all ad creative and tracking data.
+ * @description Contains ad creative and tracking data. Returned as a flat array from v1 API.
+ * @example
+ * ```typescript
+ * const ad: Ad = {
+ *   adText: 'Check out our amazing laptops!',
+ *   title: 'Dell XPS 15',
+ *   cta: 'Shop Now',
+ *   brandName: 'Dell',
+ *   url: 'https://dell.com/xps',
+ *   impUrl: 'https://tracking.example.com/imp?id=123',
+ *   clickUrl: 'https://tracking.example.com/click?id=123'
+ * };
+ * ```
  */
 export interface Ad {
   /** The advertisement copy text */
   adText: string;
-  /** Unique ad identifier */
-  adId: string;
   /** Ad title */
   title?: string;
+  /** Call-to-action text (e.g., 'Learn More', 'Shop Now') */
+  cta?: string;
   /** Brand/advertiser name */
   brandName?: string;
-  /** Brand logo image URL */
-  brandImage?: string;
   /** Landing page URL */
   url?: string;
   /** Favicon URL */
   favicon?: string;
-  /** Impression tracking URL */
+  /** Impression tracking URL - fire this when ad is displayed */
   impUrl?: string;
-  /** Click-through tracking URL */
+  /** Click-through tracking URL - use this as href for ad clicks */
   clickUrl?: string;
-  /** Payout amount in USD */
-  payout?: number;
-}
-
-/**
- * Response from the Gravity API containing ad data
- * @description Returned by getAd() when a relevant advertisement is found
- * @example
- * ```typescript
- * const response: AdResponse = {
- *   ads: [{
- *     adText: 'Check out our amazing laptops!',
- *     adId: 'ad-123',
- *     impUrl: 'https://tracking.example.com/imp?id=123',
- *     clickUrl: 'https://example.com/laptops',
- *     payout: 0.50
- *   }],
- *   numAds: 1,
- *   totalPayout: 0.50
- * };
- * ```
- */
-export interface AdResponse {
-  /** Array of ad objects */
-  ads: Ad[];
-  /** Number of ads returned */
-  numAds: number;
-  /** Total payout across all ads */
-  totalPayout?: number;
 }
 
 /**
@@ -259,96 +203,4 @@ export interface ApiErrorResponse {
   message?: string;
   /** HTTP status code */
   statusCode?: number;
-}
-
-// =============================================================================
-// Alternative Ad Request Types (for advanced use cases)
-// =============================================================================
-
-/**
- * Base fields shared across all ad requests.
- */
-export interface AdRequestBase {
-  /** Session identifier for ad relevance (required) */
-  sessionId: string;
-  /** Render context with placements array (required). Length of placements must match numAds. */
-  render_context: RenderContextObject;
-  /** Number of ads to return (1-3). Must match render_context.placements length. */
-  numAds?: number;
-  /** Unique user identifier */
-  userId?: string;
-  /** Device and location information */
-  device?: DeviceObject;
-  /** User demographic and interest data */
-  user?: UserObject;
-  /** Topics to exclude from ad matching */
-  excludedTopics?: string[];
-  /** Minimum relevancy score threshold (0-1) */
-  relevancy?: number | null;
-  /** Returns a test ad when true */
-  testAd?: boolean;
-  /** Additional custom fields */
-  [key: string]: unknown;
-}
-
-/**
- * POST /api/v1/ad/summary
- * @description Requires queryString for summary-based targeting.
- */
-export interface SummaryAdParams extends AdRequestBase {
-  /** Search/summary query string (required) */
-  queryString: string;
-}
-
-/**
- * POST /api/v1/ad/non-contextual
- * @description No context required - returns ads without context matching.
- */
-export interface NonContextualAdParams extends AdRequestBase {}
-
-/**
- * POST /api/v1/bid
- * @description Two-phase bid request. Returns bid price and bidId.
- */
-export interface BidParams {
-  /** Array of conversation messages (required) */
-  messages: MessageObject[];
-  /** Session identifier for ad relevance (required) */
-  sessionId: string;
-  /** Render context with placements array (required). Length of placements must match numAds. */
-  render_context: RenderContextObject;
-  /** Number of ads to return (1-3). Must match render_context.placements length. */
-  numAds?: number;
-  /** Unique user identifier */
-  userId?: string;
-  /** Chat/conversation identifier */
-  chatId?: string;
-  /** Device and location information */
-  device?: DeviceObject;
-}
-
-/**
- * POST /api/v1/render
- * @description Two-phase render request using cached bid context.
- */
-export interface RenderParams {
-  /** Bid identifier from the bid phase (required) */
-  bidId: string;
-  /** Realized price to charge (required) */
-  realizedPrice: number;
-}
-
-// =============================================================================
-// Bid/Render Types (for advanced two-phase flow)
-// =============================================================================
-
-/**
- * Bid response.
- * @description Returned by the bid endpoint.
- */
-export interface BidResponse {
-  /** Clearing price (CPM) */
-  bid: number;
-  /** Bid identifier for the render phase */
-  bidId: string;
 }

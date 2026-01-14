@@ -1,14 +1,5 @@
 import axios, { AxiosInstance, AxiosError } from 'axios';
-import {
-  AdParams,
-  AdResponse,
-  ApiErrorResponse,
-  SummaryAdParams,
-  NonContextualAdParams,
-  BidParams,
-  RenderParams,
-  BidResponse,
-} from './types';
+import { Ad, AdParams, ApiErrorResponse } from './types';
 
 /**
  * Configuration options for the Gravity API Client
@@ -60,20 +51,16 @@ const REQUEST_TIMEOUT = 10000;
  * 
  * const client = new Client('your-api-key');
  * 
- * const response = await client.getAd({
+ * const ads = await client.getAd({
  *   messages: [
  *     { role: 'user', content: 'What laptop should I buy?' }
  *   ],
  *   sessionId: 'session-123',
- *   numAds: 1,
- *   render_context: {
- *     placements: [{ placement: 'below_response' }]
- *   }
+ *   placements: [{ placement: 'below_response' }]
  * });
- * 
- * if (response) {
- *   const ad = response.ads[0];
- *   console.log(ad.adText);
+ *
+ * if (ads) {
+ *   console.log(ads[0].adText);
  * }
  * ```
  * 
@@ -139,83 +126,64 @@ export class Client {
   }
 
   /**
-   * Request a contextually relevant advertisement
-   * 
+   * Request contextually relevant advertisements
+   *
    * @description Fetches ads based on the provided conversation context and targeting parameters.
    * Returns `null` if no relevant ad is available or if an error occurs.
-   * 
+   *
    * @param params - Ad request parameters including conversation messages
-   * @returns Promise resolving to AdResponse or null if no ad available
-   * 
+   * @returns Promise resolving to Ad array or null if no ads available
+   *
    * @example Basic request
    * ```typescript
-   * const response = await client.getAd({
+   * const ads = await client.getAd({
    *   messages: [
    *     { role: 'user', content: 'I need a new laptop for programming' },
    *     { role: 'assistant', content: 'What is your budget range?' }
    *   ],
    *   sessionId: 'session-123',
-   *   numAds: 1,
-   *   render_context: {
-   *     placements: [{ placement: 'below_response' }]
-   *   },
-   *   userId: 'user-456',
+   *   placements: [{ placement: 'below_response' }]
    * });
-   * 
-   * if (response) {
-   *   const ad = response.ads[0];
-   *   console.log(ad.adText);
+   *
+   * if (ads) {
+   *   console.log(ads[0].adText);
    * }
    * ```
-   * 
-   * @example Full request with targeting
+   *
+   * @example With targeting options
    * ```typescript
-   * const response = await client.getAd({
+   * const ads = await client.getAd({
    *   messages: [...],
    *   sessionId: 'session-123',
-   *   numAds: 1,
-   *   render_context: {
-   *     placements: [{ placement: 'below_response' }],
-   *     max_ad_length: 200
-   *   },
+   *   placements: [{ placement: 'below_response' }],
    *   userId: 'user-456',
-   *   user: {
-   *     uid: 'user-123',
-   *     gender: 'male',
-   *     age: '25-34'
-   *   },
-   *   device: {
-   *     ip: '192.168.1.1',
-   *     country: 'US',
-   *     ua: navigator.userAgent
-   *   },
+   *   user: { gender: 'male', age: '25-34' },
+   *   device: { ip: '192.168.1.1', country: 'US' },
    *   excludedTopics: ['gambling'],
    *   relevancy: 0.8
    * });
    * ```
-   * 
-   * @example Handling the response
+   *
+   * @example Displaying and tracking
    * ```typescript
-   * const response = await client.getAd({
-   *   messages,
-   *   sessionId: '...',
-   *   numAds: 1,
-   *   render_context: { placements: [{ placement: 'below_response' }] }
-   * });
-   * 
-   * if (response) {
-   *   const ad = response.ads[0];
+   * const ads = await client.getAd({ messages, sessionId, placements });
+   *
+   * if (ads && ads.length > 0) {
+   *   const ad = ads[0];
    *   // Display the ad
-   *   showAd(ad.adText);
-   *   
-   *   // Track impression
+   *   showAd(ad.adText, ad.cta);
+   *
+   *   // Track impression when ad is displayed
    *   if (ad.impUrl) {
    *     new Image().src = ad.impUrl;
    *   }
+   *
+   *   // Use clickUrl as the href for clicks
+   *   adLink.href = ad.clickUrl || ad.url;
    * }
    * ```
    */
-  async getAd(params: AdParams): Promise<AdResponse | null> {
+  async getAd(params: AdParams): Promise<Ad[] | null> {
     try {
       const body = {
         ...params,
@@ -223,155 +191,19 @@ export class Client {
         relevancy: params.relevancy ?? this.relevancy,
       };
 
-      const response = await this.axios.post<AdResponse>('/api/v1/ad/contextual', body);
+      const response = await this.axios.post<Ad[]>('/api/v1/ad', body);
 
       if (response.status === 204) {
         return null;
       }
 
-      if (response.data && response.data.ads && response.data.ads.length > 0) {
+      if (response.data && Array.isArray(response.data) && response.data.length > 0) {
         return response.data;
       }
 
       return null;
     } catch (error) {
       this.handleError(error, 'getAd');
-      return null;
-    }
-  }
-
-  // ===========================================================================
-  // Alternative Ad Methods (for advanced use cases)
-  // ===========================================================================
-
-  /**
-   * Request summary-based advertisements
-   *
-   * @description Fetches ads based on a search/summary query string.
-   * Returns null if no relevant ad is available or on error.
-   *
-   * @param params - Request parameters including queryString
-   * @returns Promise resolving to AdResponse or null if no ad available
-   */
-  async summaryAd(params: SummaryAdParams): Promise<AdResponse | null> {
-    try {
-      const body = {
-        ...params,
-        excludedTopics: params.excludedTopics ?? this.excludedTopics,
-        relevancy: params.relevancy ?? this.relevancy,
-      };
-
-      const response = await this.axios.post<AdResponse>('/api/v1/ad/summary', body);
-
-      if (response.status === 204) {
-        return null;
-      }
-
-      if (response.data && response.data.ads && response.data.ads.length > 0) {
-        return response.data;
-      }
-
-      return null;
-    } catch (error) {
-      this.handleError(error, 'summaryAd');
-      return null;
-    }
-  }
-
-  /**
-   * Request non-contextual advertisements
-   *
-   * @description Fetches ads without context matching. Useful for brand awareness placements.
-   * Returns null if no ad is available or on error.
-   *
-   * @param params - Request parameters (sessionId required)
-   * @returns Promise resolving to AdResponse or null if no ad available
-   */
-  async nonContextualAd(params: NonContextualAdParams): Promise<AdResponse | null> {
-    try {
-      const body = {
-        ...params,
-        excludedTopics: params.excludedTopics ?? this.excludedTopics,
-      };
-
-      const response = await this.axios.post<AdResponse>('/api/v1/ad/non-contextual', body);
-
-      if (response.status === 204) {
-        return null;
-      }
-
-      if (response.data && response.data.ads && response.data.ads.length > 0) {
-        return response.data;
-      }
-
-      return null;
-    } catch (error) {
-      this.handleError(error, 'nonContextualAd');
-      return null;
-    }
-  }
-
-  /**
-   * Request a bid price for contextual ad placement
-   *
-   * @description First phase of two-phase ad flow. Returns bid price and bidId.
-   * Use the bidId with render() to generate the actual ad creative.
-   * Returns null if no bid is available or on error.
-   *
-   * @param params - Request parameters including messages array
-   * @returns Promise resolving to BidResponse or null if no bid available
-   */
-  async bid(params: BidParams): Promise<BidResponse | null> {
-    try {
-      const response = await this.axios.post<{ data: BidResponse }>('/api/v1/bid', params);
-
-      if (response.status === 204) {
-        return null;
-      }
-
-      // Unwrap the { data: { bid, bidId } } response
-      if (response.data && response.data.data) {
-        return {
-          bid: response.data.data.bid,
-          bidId: response.data.data.bidId,
-        };
-      }
-
-      return null;
-    } catch (error) {
-      this.handleError(error, 'bid');
-      return null;
-    }
-  }
-
-  /**
-   * Render an ad from a cached bid
-   *
-   * @description Second phase of two-phase ad flow. Generates ad creative using cached bid context.
-   * Returns null if bid expired (404) or on error. Bid expires after 60 seconds.
-   *
-   * @param params - Request parameters including bidId and realizedPrice
-   * @returns Promise resolving to AdResponse or null if bid expired/error
-   */
-  async render(params: RenderParams): Promise<AdResponse | null> {
-    try {
-      const response = await this.axios.post<AdResponse>('/api/v1/render', params);
-
-      if (response.status === 204) {
-        return null;
-      }
-
-      if (response.data && response.data.ads && response.data.ads.length > 0) {
-        return response.data;
-      }
-
-      return null;
-    } catch (error) {
-      // 404 means bid expired - treat as null, not an error
-      if (axios.isAxiosError(error) && error.response?.status === 404) {
-        return null;
-      }
-      this.handleError(error, 'render');
       return null;
     }
   }
