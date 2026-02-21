@@ -41,7 +41,7 @@ function openUrl(url: string) {
     if (process.platform === 'darwin') {
       child = execFile('open', [url]);
     } else if (process.platform === 'win32') {
-      child = execFile('cmd', ['/c', 'start', '', url]);
+      child = execFile('powershell', ['-NoProfile', '-Command', 'Start-Process', url]);
     } else {
       child = execFile('xdg-open', [url]);
     }
