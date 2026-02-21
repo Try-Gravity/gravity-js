@@ -194,11 +194,19 @@ export function gravityAdTracking(
   }
 
   function clear() {
+    if (hovered) {
+      if (onHoverOut) {
+        onHoverOut();
+      } else {
+        renderer.setCursorStyle({ cursor: 'default', style: 'block', blinking: false });
+        renderer.setMousePointer('default');
+        input.focus();
+      }
+    }
     activeAd = null;
     activeUrl = '';
     hovered = false;
     _impressionFired = false;
-    renderer.setMousePointer('default');
     panel.visible = false;
   }
 
