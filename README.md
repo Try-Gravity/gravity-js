@@ -6,171 +6,120 @@ Official JavaScript/TypeScript SDKs for integrating Gravity AI contextual advert
 
 | Package | Description | Version |
 |---------|-------------|---------|
-| [@gravity-ai/api](packages/api) | Core API client for fetching ads | ![npm](https://img.shields.io/npm/v/@gravity-ai/api) |
+| [@gravity-ai/api](packages/api) | Ad client + context collection + server-side ad fetching | ![npm](https://img.shields.io/npm/v/@gravity-ai/api) |
 | [@gravity-ai/react](packages/react) | React components for rendering ads | ![npm](https://img.shields.io/npm/v/@gravity-ai/react) |
 
-## Installation
+## Quick Start
 
-### API Client Only
+### 1. Install
 
 ```bash
 npm install @gravity-ai/api
 ```
 
-### API Client + React Components
+### 2. Client — collect context in your chat component
+
+```ts
+import { gravityContext } from '@gravity-ai/api';
+
+const gravity_context = gravityContext({
+  sessionId: chatSession.id,
+  user: { userId: currentUser.id },
+});
+
+fetch('/api/chat', {
+  method: 'POST',
+  body: JSON.stringify({ messages, gravity_context }),
+});
+```
+
+### 3. Server — fetch ads alongside your LLM call
+
+Set `GRAVITY_API_KEY` in your server environment.
+
+```ts
+import { Gravity } from '@gravity-ai/api';
+
+const gravity = new Gravity({ production: true });
+
+app.post('/api/chat', async (req, res) => {
+  const { messages } = req.body;
+
+  // Fire ad request in parallel with your LLM call
+  const adPromise = gravity.getAds(req, messages, [
+    { placement: 'below_response', placement_id: 'main' },
+  ]);
+
+  // Stream your LLM response...
+  for await (const token of streamYourLLM(messages)) {
+    res.write(`data: ${JSON.stringify({ type: 'chunk', content: token })}\n\n`);
+  }
+
+  // Append ads at the end
+  const { ads } = await adPromise;
+  res.write(`data: ${JSON.stringify({ type: 'done', ads })}\n\n`);
+  res.end();
+});
+```
+
+### 4. Render (optional — React)
 
 ```bash
-npm install @gravity-ai/api @gravity-ai/react
+npm install @gravity-ai/react
 ```
-
-> **Note:** The React package requires `react >= 17.0.0` as a peer dependency.
-
-## Quick Start
-
-### Fetching Ads
-
-```typescript
-import { Client } from '@gravity-ai/api';
-
-const client = new Client('your-api-key');
-
-const ads = await client.getAd({
-  messages: [
-    { role: 'user', content: 'What are some good hiking trails?' },
-    { role: 'assistant', content: 'Here are some popular hiking trails...' }
-  ],
-  sessionId: 'session-123',
-  placements: [{ placement: 'below_response', placement_id: 'main-ad' }],
-  testAd: true,
-});
-
-if (ads) {
-  const ad = ads[0];
-  console.log(ad.adText);    // The ad copy
-  console.log(ad.clickUrl);  // Click-through URL
-  console.log(ad.impUrl);    // Impression tracking URL
-}
-```
-
-### With React Components
 
 ```tsx
-import { Client } from '@gravity-ai/api';
-import { AdBanner } from '@gravity-ai/react';
-import { useState, useEffect } from 'react';
+import { GravityAd } from '@gravity-ai/react';
 
-const client = new Client('your-api-key');
-
-function ChatApp({ messages }) {
-  const [ad, setAd] = useState(null);
-
-  useEffect(() => {
-    client.getAd({
-      messages,
-      sessionId: 'session-123',
-      placements: [{ placement: 'below_response', placement_id: 'main-ad' }],
-      testAd: true,
-    }).then(ads => setAd(ads?.[0] || null));
-  }, [messages]);
-
-  return (
-    <div>
-      {/* Your chat UI */}
-      <AdBanner
-        ad={ad}
-        theme="dark"
-        size="medium"
-        onImpression={() => console.log('Ad viewed')}
-      />
-    </div>
-  );
-}
+<GravityAd ad={ads[0]} variant="card" />
 ```
 
-## Migrating from v0
+That's it. `gravityContext()` collects device signals on the client. `gravity.getAds()` reads them from `req.body`, adds the user's IP, and calls the Gravity API. Never throws.
 
-If you're upgrading from a previous version, there are three key changes:
+By default, `new Gravity()` returns **test ads** (no billing). Pass `production: true` when you're ready to go live.
 
-**1. `sessionId` is now required**
+---
 
-**2. `placements` array is now required** (with `placement_id` for each placement)
+## How It Works
 
-**3. Response is now a flat `Ad[]` array**
-```typescript
-// Before (v0)
-const ad = await client.getAd({ messages });
-if (ad) {
-  console.log(ad.adText);
-}
-
-// After (v1)
-const ads = await client.getAd({
-  messages,
-  sessionId: 'session-123',
-  placements: [{ placement: 'below_response', placement_id: 'main-ad' }]
-});
-if (ads) {
-  const ad = ads[0];
-  console.log(ad.adText);
-}
+```
+┌──────────────────┐    gravity_context in body    ┌──────────────────┐    POST /api/v1/ad    ┌─────────┐
+│   Client code    │ ────────────────────────────▶ │   Your server    │ ──────────────────▶   │ Gravity │
+│                  │                               │                  │                       │   API   │
+│ gravityContext() │   { sessionId,                │ gravity.getAds(  │   { messages,         │ returns │
+│   auto-detects   │     user: {...},              │   req, messages, │     sessionId,        │  Ad[]   │
+│   user + device  │     device: {...} }           │   placements)    │     user: {...},      │         │
+│                  │                               │  reads ctx from  │     device: {ip,...} } │         │
+└──────────────────┘                               │  req.body + IP   │                       └─────────┘
+                                                   └──────────────────┘
 ```
 
-## API Methods
+## Python
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| `getAd()` | `/api/v1/ad` | Contextual ads based on conversation messages |
+For Python backends, use [`gravity-py`](https://github.com/Try-Gravity/gravity-py):
+
+```bash
+pip install gravity-sdk
+```
+
+Same pattern — `Gravity(production=True)` + `gravity.get_ads(request, messages, placements)`. The client-side `gravityContext()` from `@gravity-ai/api` works identically with both server SDKs.
 
 ## Documentation
 
-- **[@gravity-ai/api README](packages/api/README.md)** - Full API client documentation
-- **[@gravity-ai/react README](packages/react/README.md)** - React components documentation
+- **[@gravity-ai/api README](packages/api/README.md)** — Full integration guide, API reference, Next.js / Express / Fastify examples
+- **[@gravity-ai/react README](packages/react/README.md)** — React components, variants, styling, impression tracking
 
 ## Development
 
 This is a monorepo using npm workspaces.
 
-### Setup
-
 ```bash
-# Clone the repository
 git clone https://github.com/Try-Gravity/gravity-js.git
 cd gravity-js
-
-# Install all dependencies
 npm install
-
-# Build all packages
 npm run build
-
-# Run tests
 npm run test
 ```
-
-### Local Development
-
-```bash
-# Watch mode for api package
-cd packages/api && npm run dev
-
-# Watch mode for react package  
-cd packages/react && npm run dev
-```
-
-### Testing React Components Locally
-
-We include a test app for visual testing of React components:
-
-```bash
-# Install example dependencies
-cd examples/react-test
-npm install
-
-# Start the dev server
-npm run dev
-```
-
-Then open http://localhost:5173 in your browser to see the component playground.
 
 ### Project Structure
 
@@ -178,16 +127,20 @@ Then open http://localhost:5173 in your browser to see the component playground.
 gravity-js/
 ├── packages/
 │   ├── api/                 # @gravity-ai/api
-│   │   ├── client.ts        # Main API client
+│   │   ├── gravity.ts       # Gravity class (primary API)
+│   │   ├── context.ts       # gravityContext() — client-side context collection
+│   │   ├── ads.ts           # gravityAds() — low-level ad fetching function
+│   │   ├── client.ts        # Client class (legacy low-level API client)
 │   │   ├── types.ts         # TypeScript types
 │   │   └── index.ts         # Package exports
 │   └── react/               # @gravity-ai/react
 │       └── src/
-│           ├── components/  # React components
-│           ├── hooks/       # Custom hooks
+│           ├── components/  # GravityAd, AdText
+│           ├── hooks/       # useAdTracking
 │           └── types.ts     # Component types
 ├── examples/
-│   └── react-test/          # Visual testing app
+│   ├── api-test/            # Node.js API test
+│   └── react-test/          # React component playground
 └── package.json             # Root workspace config
 ```
 
@@ -195,27 +148,19 @@ gravity-js/
 
 ### What parameters are required?
 
-**`sessionId` and `placements` are required.** Each placement must include a `placement_id`. `userId` should always be included when available for better ad relevance and higher CPMs.
+`sessionId` and `user.userId` are required for `gravityContext()`. `placements` (with `placement_id`) are required for `gravity.getAds()`.
 
-### How do I style the AdBanner to match my app?
+### Where does the API key go?
 
-Use the built-in themes, or override with custom props:
+Set `GRAVITY_API_KEY` as an environment variable on your server. The `Gravity` class reads it automatically. You can also pass it explicitly via `new Gravity({ apiKey: '...' })`.
 
-```tsx
-<AdBanner
-  ad={ad}
-  backgroundColor="#1e1b4b"
-  textColor="#e0e7ff"
-  accentColor="#818cf8"
-  borderRadius={16}
-/>
-```
+### Does the ad request block my LLM response?
 
-Or use the `theme="minimal"` preset and apply your own CSS via `className`.
+No. Fire `gravity.getAds()` in parallel with your LLM call using `Promise.allSettled()`. It never throws, so failures are silent.
 
-### Do I need to handle impression tracking manually?
+### Do I need to handle impression tracking?
 
-No! The React components automatically fire impression pixels when rendered. You can disable this with `disableImpressionTracking={true}` if needed.
+If using `@gravity-ai/react`, no — the `GravityAd` component fires impression pixels automatically via IntersectionObserver. For custom rendering, fire `new Image().src = ad.impUrl` when the ad becomes visible.
 
 ## License
 

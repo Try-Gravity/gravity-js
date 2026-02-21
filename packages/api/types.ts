@@ -204,3 +204,72 @@ export interface ApiErrorResponse {
   /** HTTP status code */
   statusCode?: number;
 }
+
+// ──────────────────────────────────────────────────────────────
+// gravityContext / gravityAds types
+// ──────────────────────────────────────────────────────────────
+
+/**
+ * Overrides passed to `gravityContext()`.
+ * `sessionId` and `user.userId` are required; everything else is auto-detected.
+ */
+export interface GravityContextOverrides {
+  /** Your chat/conversation session ID (required) */
+  sessionId: string;
+  /** User info — `userId` is required */
+  user: { userId: string } & Record<string, unknown>;
+  /** Device field overrides (timezone, locale, etc.) */
+  device?: Record<string, unknown>;
+}
+
+/** The context object returned by `gravityContext()` and sent in the request body. */
+export interface GravityContext {
+  sessionId: string;
+  user: { id: string } & Record<string, unknown>;
+  device: Record<string, unknown>;
+}
+
+/** Options for `gravityAds()`. */
+export interface GravityAdsOptions {
+  /** Gravity API key. Defaults to `process.env.GRAVITY_API_KEY`. */
+  apiKey?: string;
+  /** Gravity ad endpoint URL. Defaults to production. */
+  gravityApi?: string;
+  /** Abort after this many ms. Default: `3000`. */
+  timeoutMs?: number;
+  /** Minimum relevancy threshold (0-1). Default: `0.2`. */
+  relevancy?: number;
+  /**
+   * Serve real ads when `true`. Defaults to `false` (test ads, no billing).
+   * Pass `production: true` when you're ready to go live.
+   */
+  production?: boolean;
+  /** Topics to exclude from ad matching. */
+  excludedTopics?: string[];
+}
+
+/** Result returned by `gravityAds()`. Never throws. */
+export interface GravityAdsResult {
+  /** Matched ads (empty array on failure or no-fill). */
+  ads: Ad[];
+  /** HTTP status from the Gravity API. `0` = network error or missing API key. */
+  status: number;
+  /** Round-trip time in ms (string for easy logging). */
+  elapsed: string;
+  /** The full request body sent to Gravity (useful for debugging). */
+  requestBody: Record<string, unknown> | null;
+  /** Error message, only present on failure. */
+  error?: string;
+}
+
+/**
+ * Minimal server request shape that `gravityAds()` can read.
+ * Compatible with Express, Fastify, Node http (with body-parser), Next.js, etc.
+ */
+export interface IncomingAdRequest {
+  body?: { gravity_context?: GravityContext; [key: string]: unknown };
+  headers?: Record<string, string | string[] | undefined>;
+  socket?: { remoteAddress?: string };
+  connection?: { remoteAddress?: string };
+  ip?: string;
+}
