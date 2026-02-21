@@ -1,132 +1,73 @@
 import type { CSSProperties, ReactNode } from 'react';
 
-/**
- * Ad response from the Gravity API
- * This mirrors the type from @gravity-ai/api for convenience
- */
 export interface AdResponse {
-  /** The advertisement copy text */
   adText: string;
-  /** Ad title */
   title?: string;
-  /** Call-to-action text (e.g., 'Learn More', 'Shop Now') */
   cta?: string;
-  /** Brand/advertiser name */
   brandName?: string;
-  /** Landing page URL */
   url?: string;
-  /** Favicon URL */
   favicon?: string;
-  /** Impression tracking URL - fire this when ad is displayed */
   impUrl?: string;
-  /** Click-through tracking URL - use this as href for ad clicks */
   clickUrl?: string;
 }
 
-/**
- * Visual theme presets for the ad banner
- */
-export type AdTheme = 'light' | 'dark' | 'minimal' | 'branded';
+export type GravityAdVariant = 'card' | 'inline' | 'minimal';
 
 /**
- * Banner size presets
+ * Style + className overrides for individual elements inside `<GravityAd />`.
+ *
+ * Each key maps 1:1 to a DOM element in the component's JSX tree.
+ * Pass `style` to merge onto the element's inline styles, or `className`
+ * to append a CSS class.
  */
-export type AdSize = 'small' | 'medium' | 'large' | 'responsive';
+export interface GravityAdSlotProps {
+  /** Outer `<a>` wrapper (same as the top-level `style`/`className` props) */
+  container?: { style?: CSSProperties; className?: string };
+  /** Inner padding/layout wrapper */
+  inner?: { style?: CSSProperties; className?: string };
+  /** Header row (favicon + brand + label) */
+  header?: { style?: CSSProperties; className?: string };
+  /** Favicon `<img>` */
+  favicon?: { style?: CSSProperties; className?: string };
+  /** Brand name `<span>` */
+  brand?: { style?: CSSProperties; className?: string };
+  /** "Sponsored" label `<span>` */
+  label?: { style?: CSSProperties; className?: string };
+  /** Body wrapper (title + text) */
+  body?: { style?: CSSProperties; className?: string };
+  /** Title `<p>` */
+  title?: { style?: CSSProperties; className?: string };
+  /** Ad text `<p>` */
+  text?: { style?: CSSProperties; className?: string };
+  /** CTA button `<span>` */
+  cta?: { style?: CSSProperties; className?: string };
+}
 
-/**
- * Props for the AdBanner component
- */
-export interface AdBannerProps {
-  /** The ad response from Gravity API */
+export interface GravityAdProps {
   ad: AdResponse | null;
-
-  /** Visual theme preset */
-  theme?: AdTheme;
-
-  /** Size preset */
-  size?: AdSize;
-
-  /** Custom class name for the container */
+  variant?: GravityAdVariant;
   className?: string;
-
-  /** Custom inline styles for the container */
   style?: CSSProperties;
-
-  /** Custom styles for the ad text */
-  textStyle?: CSSProperties;
-
-  /** Custom class name for the ad text */
-  textClassName?: string;
-
-  /** Whether to show the "Sponsored" label */
+  /** Targeted style overrides for inner elements. */
+  slotProps?: GravityAdSlotProps;
   showLabel?: boolean;
-
-  /** Custom label text (default: "Sponsored") */
   labelText?: string;
-
-  /** Custom styles for the label */
-  labelStyle?: CSSProperties;
-
-  /** Custom click handler (called in addition to tracking) */
   onClick?: () => void;
-
-  /** Callback when impression is tracked */
   onImpression?: () => void;
-
-  /** Callback when click is tracked */
   onClickTracked?: () => void;
-
-  /** Custom content to render when ad is null */
   fallback?: ReactNode;
-
-  /** Whether to disable automatic impression tracking */
   disableImpressionTracking?: boolean;
-
-  /** Whether to open link in new tab (default: true) */
   openInNewTab?: boolean;
-
-  /** Custom border radius */
-  borderRadius?: number | string;
-
-  /** Custom background color (overrides theme) */
-  backgroundColor?: string;
-
-  /** Custom text color (overrides theme) */
-  textColor?: string;
-
-  /** Custom accent/brand color */
-  accentColor?: string;
 }
 
-/**
- * Props for the AdText component (minimal text-only rendering)
- */
 export interface AdTextProps {
-  /** The ad response from Gravity API */
   ad: AdResponse | null;
-
-  /** Custom class name */
   className?: string;
-
-  /** Custom inline styles */
   style?: CSSProperties;
-
-  /** Custom click handler */
   onClick?: () => void;
-
-  /** Callback when impression is tracked */
   onImpression?: () => void;
-
-  /** Callback when click is tracked */
   onClickTracked?: () => void;
-
-  /** Content to render when ad is null */
   fallback?: ReactNode;
-
-  /** Whether to disable automatic impression tracking */
   disableImpressionTracking?: boolean;
-
-  /** Whether to open link in new tab (default: true) */
   openInNewTab?: boolean;
 }
-
