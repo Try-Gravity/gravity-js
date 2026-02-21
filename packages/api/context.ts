@@ -57,7 +57,7 @@ export function gravityContext(overrides: GravityContextOverrides): GravityConte
 
   return {
     sessionId: overrides.sessionId,
-    user: { id: userId, ...restUser },
+    user: { ...restUser, id: userId },
     device,
   };
 }

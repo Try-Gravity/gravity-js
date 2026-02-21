@@ -222,6 +222,16 @@ export function gravityAdTracking(
       return;
     }
 
+    if (hovered) {
+      if (onHoverOut) {
+        onHoverOut();
+      } else {
+        renderer.setCursorStyle({ cursor: 'default', style: 'block', blinking: false });
+        renderer.setMousePointer('default');
+        input.focus();
+      }
+    }
+
     activeAd = ad;
     activeUrl = ad.clickUrl || ad.url || '';
     hovered = false;
