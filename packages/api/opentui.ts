@@ -27,7 +27,7 @@
  * Requires `@opentui/core` as a peer dependency.
  */
 
-import { exec } from 'child_process';
+import { execFile } from 'child_process';
 import type { Ad } from './types';
 
 // ──────────────────────────────────────────────────────────────
@@ -36,13 +36,12 @@ import type { Ad } from './types';
 
 function openUrl(url: string) {
   if (!url) return;
-  const escaped = url.replace(/"/g, '\\"');
   if (process.platform === 'darwin') {
-    exec(`open "${escaped}"`);
+    execFile('open', [url]);
   } else if (process.platform === 'win32') {
-    exec(`cmd /c start "" "${escaped}"`);
+    execFile('cmd', ['/c', 'start', '', url]);
   } else {
-    exec(`xdg-open "${escaped}"`);
+    execFile('xdg-open', [url]);
   }
 }
 
