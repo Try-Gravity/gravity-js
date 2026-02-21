@@ -112,24 +112,8 @@ export interface UserObject {
 }
 
 /**
- * Parameters for requesting an advertisement
- * @description The complete request payload for the getAd() method
- * @example
- * ```typescript
- * const params: AdParams = {
- *   messages: [
- *     { role: 'user', content: 'What laptop should I buy?' },
- *     { role: 'assistant', content: 'What is your budget?' }
- *   ],
- *   sessionId: 'session-123',
- *   placements: [{ placement: 'below_response' }],
- *   userId: 'user-456',
- *   user: { gender: 'male', age: '25-34' },
- *   device: { ip: '1.2.3.4', country: 'US' },
- *   excludedTopics: ['politics'],
- *   relevancy: 0.5
- * };
- * ```
+ * @deprecated Use `Gravity.getAds()` or `gravityAds()` instead, which accept
+ * standard request objects and auto-extract context from `gravityContext()`.
  */
 export interface AdParams {
   /** Array of conversation messages for contextual targeting (required) */

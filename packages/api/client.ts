@@ -2,16 +2,7 @@ import axios, { AxiosInstance, AxiosError } from 'axios';
 import { Ad, AdParams, ApiErrorResponse } from './types';
 
 /**
- * Configuration options for the Gravity API Client
- * @description Pass these options when creating a new Client instance
- * @example
- * ```typescript
- * const params: ClientParams = {
- *   endpoint: 'https://custom.gravity.server',
- *   excludedTopics: ['politics', 'religion'],
- *   relevancy: 0.5
- * };
- * ```
+ * @deprecated Use `Gravity` instead. See README for migration guide.
  */
 export interface ClientParams {
   /** 
@@ -40,37 +31,13 @@ const DEFAULT_ENDPOINT = 'https://server.trygravity.ai';
 const REQUEST_TIMEOUT = 10000;
 
 /**
- * Gravity API Client
- * 
- * @description The main client for interacting with the Gravity AI advertising API.
- * Use this client to fetch contextually relevant advertisements based on conversation content.
- * 
- * @example Basic usage
- * ```typescript
- * import { Client } from '@gravity-ai/api';
- * 
- * const client = new Client('your-api-key');
- * 
- * const ads = await client.getAd({
- *   messages: [
- *     { role: 'user', content: 'What laptop should I buy?' }
- *   ],
- *   sessionId: 'session-123',
- *   placements: [{ placement: 'below_response' }]
- * });
+ * @deprecated Use `Gravity` instead — it reads the API key from env, auto-extracts
+ * client context and IP from the request, and pairs with `gravityContext()` on the client.
  *
- * if (ads) {
- *   console.log(ads[0].adText);
- * }
- * ```
- * 
- * @example With configuration options
- * ```typescript
- * const client = new Client('your-api-key', {
- *   endpoint: 'https://custom.server.com',
- *   excludedTopics: ['politics'],
- *   relevancy: 0.7
- * });
+ * ```ts
+ * import { Gravity } from '@gravity-ai/api';
+ * const gravity = new Gravity({ production: true });
+ * const { ads } = await gravity.getAds(req, messages, placements);
  * ```
  */
 export class Client {
