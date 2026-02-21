@@ -333,20 +333,34 @@ const CARD_DEFAULTS = {
 function wrapLineCount(text: string, width: number): number {
   const value = (text || '').trim();
   if (!value) return 0;
-  const words = value.split(/\s+/);
-  let lines = 1;
-  let current = 0;
-  for (const word of words) {
-    if (current === 0) {
-      current = word.length;
-    } else if (current + 1 + word.length <= width) {
-      current += 1 + word.length;
-    } else {
-      lines++;
-      current = word.length;
+
+  const segments = value.split('\n');
+  let totalLines = 0;
+
+  for (const segment of segments) {
+    const trimmed = segment.trim();
+    if (!trimmed) {
+      totalLines++;
+      continue;
     }
+
+    const words = trimmed.split(/\s+/);
+    let lines = 1;
+    let current = 0;
+    for (const word of words) {
+      if (current === 0) {
+        current = word.length;
+      } else if (current + 1 + word.length <= width) {
+        current += 1 + word.length;
+      } else {
+        lines++;
+        current = word.length;
+      }
+    }
+    totalLines += lines;
   }
-  return lines;
+
+  return totalLines;
 }
 
 /**
