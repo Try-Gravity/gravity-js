@@ -165,7 +165,7 @@ export async function gravityAds(
 
     const data: unknown = await res.json();
     const ads: Ad[] = Array.isArray(data) ? data : [data as Ad];
-    return { ads, status: 200, elapsed, requestBody: body };
+    return { ads, status: res.status, elapsed, requestBody: body };
   } catch (err: unknown) {
     const elapsed = (performance.now() - start).toFixed(0);
     const error =
