@@ -308,7 +308,7 @@ const CARD_DEFAULTS = {
 
 function wrapLineCount(text: string, width: number): number {
   const value = (text || '').trim();
-  if (!value) return 1;
+  if (!value) return 0;
   const words = value.split(/\s+/);
   let lines = 1;
   let current = 0;
@@ -485,7 +485,7 @@ export function createGravityAdCard(options: GravityAdCardOptions): GravityAdCar
     const cta = ad.cta || '';
 
     adLabel.content = 'Ad';
-    adText.content = `${title}\n${body}`;
+    adText.content = body ? `${title}\n${body}` : title;
     adCta.content = cta;
 
     // Compute explicit height so OpenTUI doesn't overlap siblings.
