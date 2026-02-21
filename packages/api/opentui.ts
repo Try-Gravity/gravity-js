@@ -36,12 +36,15 @@ import type { Ad } from './types';
 
 function openUrl(url: string) {
   if (!url) return;
-  if (process.platform === 'darwin') {
-    execFile('open', [url]);
-  } else if (process.platform === 'win32') {
-    execFile('cmd', ['/c', 'start', '', url]);
-  } else {
-    execFile('xdg-open', [url]);
+  try {
+    const cmd =
+      process.platform === 'darwin' ? ['open', [url]] as const
+      : process.platform === 'win32' ? ['cmd', ['/c', 'start', '', url]] as const
+      : ['xdg-open', [url]] as const;
+    const child = execFile(cmd[0], cmd[1] as string[]);
+    child.on('error', () => {});
+  } catch {
+    // Never break the host app for click handling failures
   }
 }
 
