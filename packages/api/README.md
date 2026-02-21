@@ -231,6 +231,26 @@ const { ads } = await gravityAds(req, messages, placements, { production: true }
 
 ## Rendering Ads
 
+### Terminal (OpenTUI)
+
+For OpenTUI terminal apps, `createGravityAdCard()` gives you a ready-to-use ad card with impression tracking, click-to-open-browser, and hover affordance:
+
+```ts
+import { createGravityAdCard } from '@gravity-ai/api/opentui';
+
+const adCard = createGravityAdCard({ renderer, input });
+root.add(adCard.panel);
+
+// In your SSE stream consumer:
+if (event.type === 'ad') {
+  adCard.showAd(event.ads[0]);  // populates content, fires impression, wires click
+}
+```
+
+Every visual property is overridable — pass `panel`, `text`, `cta`, `hoverPanel` style overrides, or mutate `adCard.elements` directly. For fully custom layouts, use the low-level `gravityAdTracking()` primitive instead.
+
+Requires `@opentui/core` as a peer dependency (`bun add @opentui/core`). See [OPENTUI.md](OPENTUI.md) for the full API reference, custom layout guide, and theme matching.
+
 ### React
 
 ```bash
