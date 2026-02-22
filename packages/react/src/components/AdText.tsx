@@ -3,24 +3,8 @@ import type { AdTextProps } from '../types';
 import { useAdTracking } from '../hooks/useAdTracking';
 
 /**
- * AdText - A minimal text-only component for rendering Gravity AI advertisements
- *
- * Use this when you want full control over styling and just need the ad text
- * with automatic tracking.
- *
- * @example
- * ```tsx
- * import { AdText } from '@gravity-ai/react';
- *
- * function MyComponent() {
- *   return (
- *     <AdText
- *       ad={ad}
- *       className="my-custom-ad-style"
- *     />
- *   );
- * }
- * ```
+ * Unstyled text-only ad renderer with automatic tracking.
+ * Use when you want full control over presentation.
  */
 export function AdText({
   ad,
@@ -33,14 +17,13 @@ export function AdText({
   disableImpressionTracking = false,
   openInNewTab = true,
 }: AdTextProps) {
-  const { handleClick } = useAdTracking({
+  const { containerRef, handleClick } = useAdTracking({
     ad,
     disableImpressionTracking,
     onImpression,
     onClickTracked,
   });
 
-  // Return fallback if no ad
   if (!ad) {
     return <>{fallback}</>;
   }
@@ -48,7 +31,6 @@ export function AdText({
   const handleClickInternal = (e: React.MouseEvent) => {
     handleClick();
     onClick?.();
-
     if (!ad.clickUrl) {
       e.preventDefault();
     }
@@ -64,6 +46,7 @@ export function AdText({
   if (ad.clickUrl) {
     return (
       <a
+        ref={containerRef as React.Ref<HTMLAnchorElement>}
         href={ad.clickUrl}
         target={openInNewTab ? '_blank' : undefined}
         rel={openInNewTab ? 'noopener noreferrer sponsored' : 'sponsored'}
@@ -78,11 +61,15 @@ export function AdText({
   }
 
   return (
-    <span className={className} style={baseStyle} data-gravity-ad>
+    <span
+      ref={containerRef as React.Ref<HTMLSpanElement>}
+      className={className}
+      style={baseStyle}
+      data-gravity-ad
+    >
       {ad.adText}
     </span>
   );
 }
 
 AdText.displayName = 'GravityAdText';
-

@@ -8,55 +8,85 @@ interface UseAdTrackingOptions {
   onClickTracked?: () => void;
 }
 
-/**
- * Hook to handle ad impression and click tracking
- */
+interface UseAdTrackingReturn {
+  containerRef: React.RefObject<HTMLElement | null>;
+  handleClick: () => void;
+  impressionFired: boolean;
+}
+
 export function useAdTracking({
   ad,
   disableImpressionTracking = false,
   onImpression,
   onClickTracked,
-}: UseAdTrackingOptions) {
-  const impressionTracked = useRef(false);
+}: UseAdTrackingOptions): UseAdTrackingReturn {
+  const containerRef = useRef<HTMLElement | null>(null);
+  const impressionFired = useRef(false);
+  const impUrlRef = useRef(ad?.impUrl);
 
-  // Track impression when ad becomes visible
+  // Reset when the ad's impression URL changes (new ad served)
   useEffect(() => {
-    if (!ad || !ad.impUrl || disableImpressionTracking || impressionTracked.current) {
+    if (ad?.impUrl !== impUrlRef.current) {
+      impressionFired.current = false;
+      impUrlRef.current = ad?.impUrl;
+    }
+  }, [ad?.impUrl]);
+
+  useEffect(() => {
+    if (!ad?.impUrl || disableImpressionTracking || impressionFired.current) {
       return;
     }
 
-    // Fire impression pixel
-    const trackImpression = async () => {
-      try {
-        // Use an image beacon for reliable tracking
-        const img = new Image();
-        img.src = ad.impUrl!;
-        impressionTracked.current = true;
-        onImpression?.();
-      } catch (error) {
-        console.error('[Gravity] Failed to track impression:', error);
-      }
-    };
+    const el = containerRef.current;
+    if (!el) return;
 
-    trackImpression();
+    if (typeof IntersectionObserver === 'undefined') {
+      // Fallback for environments without IntersectionObserver (e.g. SSR hydration,
+      // older browsers): fire immediately like the old behavior.
+      fireImpression(ad.impUrl, impressionFired, onImpression);
+      return;
+    }
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (entry.isIntersecting && !impressionFired.current && ad.impUrl) {
+            fireImpression(ad.impUrl, impressionFired, onImpression);
+            observer.disconnect();
+          }
+        }
+      },
+      { threshold: 0.5 },
+    );
+
+    observer.observe(el);
+
+    return () => observer.disconnect();
   }, [ad, disableImpressionTracking, onImpression]);
 
-  // Reset impression tracking when ad changes
-  useEffect(() => {
-    impressionTracked.current = false;
-  }, [ad?.impUrl]);
-
-  // Handle click tracking
   const handleClick = useCallback(() => {
     if (!ad?.clickUrl) return;
-
-    // Fire click tracking (the actual navigation is handled separately)
     onClickTracked?.();
   }, [ad?.clickUrl, onClickTracked]);
 
   return {
+    containerRef,
     handleClick,
-    impressionTracked: impressionTracked.current,
+    impressionFired: impressionFired.current,
   };
 }
 
+function fireImpression(
+  impUrl: string,
+  firedRef: React.MutableRefObject<boolean>,
+  onImpression?: () => void,
+) {
+  try {
+    const img = new Image();
+    img.src = impUrl;
+    firedRef.current = true;
+    onImpression?.();
+  } catch {
+    // Silently fail -- don't break the host app for tracking failures
+  }
+}
