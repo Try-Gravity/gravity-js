@@ -105,7 +105,7 @@ export async function gravityAds(
     opts.apiKey ||
     (typeof process !== 'undefined' ? process.env?.GRAVITY_API_KEY : undefined);
   const gravityApi = opts.gravityApi || DEFAULT_GRAVITY_API;
-  const timeoutMs = opts.timeoutMs || DEFAULT_TIMEOUT_MS;
+  const timeoutMs = opts.timeoutMs ?? DEFAULT_TIMEOUT_MS;
 
   if (!apiKey) {
     return { ads: [], status: 0, elapsed: '0', requestBody: null };
