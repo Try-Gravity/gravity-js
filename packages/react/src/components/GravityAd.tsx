@@ -275,7 +275,9 @@ export function GravityAd({
     { ...hoverExtra, ...style },
   );
 
-  const ctaHoverExtra = hovered ? defaults.ctaHover : undefined;
+  // The container already lifts on hover (shadow + translateY).
+  // Don't change CTA color on hover — it clashes with custom CTA colors.
+  const ctaHoverExtra = undefined;
 
   const hasHeader = ad.favicon || ad.brandName || showLabel;
 
