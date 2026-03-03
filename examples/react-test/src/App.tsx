@@ -141,12 +141,6 @@ const TEMPLATES: Template[] = [
 
   // ── Native ─────────────────────────────────────────────────────
 
-  { id: 'contextual', name: 'Contextual', category: 'Native',
-    description: 'Relevance header above the ad card',
-    variant: 'contextual', radius: 12, borderWidth: 1,
-    showBrand: false, showTitle: true, showCta: true, showLabel: true, labelText: 'Ad',
-    light: E, dark: E },
-
   { id: 'native', name: 'Native', category: 'Native',
     description: 'Content-first block blending with AI responses',
     variant: 'native', radius: 14, borderWidth: 0,
@@ -194,8 +188,9 @@ const CATEGORIES = ['Cards', 'Inline', 'Native'] as const;
 
 // ── Dark mode ad defaults ────────────────────────────────────────
 function darkAdSlots(variant: GravityAdVariant): GravityAdSlotProps {
-  const isTransparent = variant === 'minimal' || variant === 'footnote' || variant === 'divider' || variant === 'native' || variant === 'bubble' || variant === 'quote';
-  return {
+  const isTransparent = variant === 'minimal' || variant === 'footnote' || variant === 'divider' || variant === 'native' || variant === 'quote';
+
+  const base: GravityAdSlotProps = {
     container: { style: {
       background: isTransparent ? 'transparent' : 'rgba(255,255,255,0.04)',
       borderColor: isTransparent ? 'transparent' : 'rgba(255,255,255,0.08)',
@@ -211,6 +206,47 @@ function darkAdSlots(variant: GravityAdVariant): GravityAdSlotProps {
     accentBar: { style: { background: '#818CF8' } },
     contextHeader: { style: { color: 'rgba(255,255,255,0.25)' } },
   };
+
+  if (variant === 'tooltip') {
+    base.container = { style: { background: '#27272A', borderColor: 'rgba(255,255,255,0.1)', boxShadow: '0 4px 20px rgba(0,0,0,0.5)' } };
+    base.arrow = { style: { background: '#27272A', borderColor: 'rgba(255,255,255,0.1)' } };
+    base.cta = { style: { background: 'rgba(255,255,255,0.08)', color: '#FAFAFA' } };
+  }
+
+  if (variant === 'notification') {
+    base.container = { style: { background: '#27272A', borderColor: 'transparent', boxShadow: '0 4px 24px rgba(0,0,0,0.4), 0 0 0 1px rgba(255,255,255,0.06)' } };
+  }
+
+  if (variant === 'toolbar') {
+    base.container = { style: { background: '#27272A', borderColor: 'transparent', boxShadow: '0 2px 16px rgba(0,0,0,0.4), 0 0 0 1px rgba(255,255,255,0.06)' } };
+    base.cta = { style: { background: 'rgba(255,255,255,0.1)', color: '#FAFAFA' } };
+  }
+
+  if (variant === 'bubble') {
+    base.container = { style: { background: 'transparent', borderColor: 'transparent', boxShadow: 'none' } };
+    base.inner = { style: { background: 'rgba(255,255,255,0.06)' } };
+    base.brand = { style: { color: 'rgba(255,255,255,0.5)' } };
+    base.label = { style: { color: 'rgba(255,255,255,0.3)', background: 'rgba(255,255,255,0.06)', borderColor: 'transparent' } };
+  }
+
+  if (variant === 'suggestion') {
+    base.container = { style: { background: 'rgba(255,255,255,0.06)', borderColor: 'rgba(255,255,255,0.08)' } };
+  }
+
+  if (variant === 'split-action') {
+    base.footer = { style: { color: '#A1A1AA', borderColor: 'rgba(255,255,255,0.06)' } };
+    base.secondaryCta = { style: { color: '#A1A1AA', borderColor: 'rgba(255,255,255,0.06)' } };
+  }
+
+  if (variant === 'banner') {
+    base.cta = { style: { background: '#FAFAFA', color: '#18181B' } };
+  }
+
+  if (variant === 'embed') {
+    base.iconWrapper = { style: { background: 'linear-gradient(135deg, rgba(99,102,241,0.15), rgba(99,102,241,0.05))' } };
+  }
+
+  return base;
 }
 
 // ── Helpers ──────────────────────────────────────────────────────
@@ -415,6 +451,80 @@ function ColorPicker({ label, value, onChange, swatches }: { label: string; valu
   );
 }
 
+function ChatContext({ children, mode, variant, adBody }: { children: ReactNode; mode: 'light' | 'dark'; variant: GravityAdVariant; adBody: string }) {
+  const isCompact = ['pill', 'toolbar', 'divider', 'banner'].includes(variant);
+
+  const msgStyle = (isUser: boolean): CSSProperties => ({
+    fontSize: 13.5, lineHeight: 1.6, color: 'var(--fg)',
+    ...(isUser ? {
+      background: mode === 'dark' ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)',
+      borderRadius: '4px 16px 16px 16px',
+      padding: '12px 16px',
+      maxWidth: '85%',
+    } : {}),
+  });
+
+  const labelStyle: CSSProperties = {
+    fontSize: 11, fontWeight: 600, color: 'var(--muted)',
+    marginBottom: 6, display: 'flex', alignItems: 'center', gap: 6,
+  };
+
+  const dotStyle: CSSProperties = {
+    width: 6, height: 6, borderRadius: 3,
+    background: mode === 'dark' ? 'rgba(255,255,255,0.15)' : 'rgba(0,0,0,0.15)',
+  };
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 20, width: '100%' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
+        <div style={{ ...labelStyle, alignSelf: 'flex-end' }}><div style={dotStyle} /> You</div>
+        <div style={msgStyle(true)}>
+          What tools can help me monetize my AI chatbot without ruining the user experience?
+        </div>
+      </div>
+
+      <div>
+        <div style={labelStyle}>
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+          Assistant
+        </div>
+        <div style={msgStyle(false)}>
+          <p style={{ margin: '0 0 12px' }}>There are a few approaches that work well for AI platforms looking to generate revenue without disrupting conversations:</p>
+          <p style={{ margin: isCompact ? 0 : '0 0 12px' }}><strong>Contextual native ads</strong> are the most popular option — they analyze the conversation topic and serve relevant brand placements that feel like natural recommendations rather than interruptions.</p>
+          {isCompact && (
+            <p style={{ margin: '12px 0 0', color: 'var(--fg)' }}>{adBody}</p>
+          )}
+        </div>
+      </div>
+
+      <div style={{ padding: '0' }}>
+        {children}
+      </div>
+
+      <div>
+        <div style={msgStyle(false)}>
+          <p style={{ margin: 0 }}>The key is matching the ad format to your UI density. Card-style placements work between messages, while inline formats can sit within response text without breaking reading flow.</p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function FadeIn({ id, children }: { id: string; children: ReactNode }) {
+  const [opacity, setOpacity] = useState(0);
+  useEffect(() => {
+    setOpacity(0);
+    const raf = requestAnimationFrame(() => setOpacity(1));
+    return () => cancelAnimationFrame(raf);
+  }, [id]);
+
+  return (
+    <div style={{ transition: 'opacity 200ms ease', opacity }}>
+      {children}
+    </div>
+  );
+}
+
 function CopyButton({ text }: { text: string }) {
   const [copied, setCopied] = useState(false);
   const copy = () => {
@@ -474,6 +584,10 @@ function App() {
   const [ctaFg, setCtaFg] = useState('');
   const [shadow, setShadow] = useState('');
   const [accentColor, setAccentColor] = useState('');
+
+  // Preview
+  const [previewMode, setPreviewMode] = useState<'isolated' | 'context'>('context');
+  const [previewWidth, setPreviewWidth] = useState<'full' | 'mobile' | 'tablet'>('full');
 
   // Category filter
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
@@ -591,21 +705,61 @@ function App() {
       </header>
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+        {/* Preview controls */}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <Seg options={['In context', 'Isolated']} value={previewMode === 'context' ? 'In context' : 'Isolated'} onChange={v => setPreviewMode(v === 'In context' ? 'context' : 'isolated')} />
+          <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+            {(['mobile', 'tablet', 'full'] as const).map(w => (
+              <button key={w} onClick={() => setPreviewWidth(w)} style={{
+                ...S.seg(previewWidth === w),
+                padding: '4px 8px', fontSize: 11,
+              }}>
+                {w === 'mobile' ? (
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12" y2="18"/></svg>
+                ) : w === 'tablet' ? (
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="4" y="2" width="16" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12" y2="18"/></svg>
+                ) : (
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+                )}
+              </button>
+            ))}
+          </div>
+        </div>
+
         {/* Preview */}
         <div style={{
           backgroundColor: 'var(--subtle)', borderRadius: 8,
-          padding: 24, minHeight: 180, overflow: 'hidden',
+          padding: previewMode === 'context' ? '28px 24px' : 24,
+          minHeight: 180, overflow: 'hidden',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
-          transition: 'background-color 200ms',
+          transition: 'background-color 200ms, padding 200ms',
         }}>
-          <div style={{ width: '100%', maxWidth: variant === 'pill' || variant === 'divider' || variant === 'banner' || variant === 'toolbar' ? 560 : 480 }}>
-            <GravityAd
-              ad={ad} variant={variant} showLabel={showLabel} labelText={labelText || undefined}
-              slotProps={finalSlotProps} style={containerStyle} disableImpressionTracking
-              fallback={<div style={{ padding: 20, textAlign: 'center', color: 'var(--muted)', border: '1px dashed var(--border)', borderRadius: 6, fontSize: 12 }}>
-                ad is null — fallback renders here
-              </div>}
-            />
+          <div style={{
+            width: '100%',
+            maxWidth: previewWidth === 'mobile' ? 360 : previewWidth === 'tablet' ? 540 : (variant === 'pill' || variant === 'divider' || variant === 'banner' || variant === 'toolbar' ? 560 : 520),
+            transition: 'max-width 300ms ease',
+          }}>
+            <FadeIn id={`${currentTemplate.id}-${previewMode}`}>
+              {previewMode === 'context' ? (
+                <ChatContext mode={mode} variant={variant} adBody={adBody}>
+                  <GravityAd
+                    ad={ad} variant={variant} showLabel={showLabel} labelText={labelText || undefined}
+                    slotProps={finalSlotProps} style={containerStyle} disableImpressionTracking
+                    fallback={<div style={{ padding: 20, textAlign: 'center', color: 'var(--muted)', border: '1px dashed var(--border)', borderRadius: 6, fontSize: 12 }}>
+                      ad is null — fallback renders here
+                    </div>}
+                  />
+                </ChatContext>
+              ) : (
+                <GravityAd
+                  ad={ad} variant={variant} showLabel={showLabel} labelText={labelText || undefined}
+                  slotProps={finalSlotProps} style={containerStyle} disableImpressionTracking
+                  fallback={<div style={{ padding: 20, textAlign: 'center', color: 'var(--muted)', border: '1px dashed var(--border)', borderRadius: 6, fontSize: 12 }}>
+                    ad is null — fallback renders here
+                  </div>}
+                />
+              )}
+            </FadeIn>
           </div>
         </div>
 

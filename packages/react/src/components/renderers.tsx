@@ -666,7 +666,7 @@ export function renderSplitAction(p: VariantRenderProps) {
           borderRight: '1px solid rgba(0,0,0,0.05)', color: 'rgba(0,0,0,0.45)',
           fontSize: 12.5, fontWeight: 600, cursor: 'pointer', textAlign: 'center',
           fontFamily: 'inherit', textDecoration: 'none',
-        }, sp)} className={sc('secondaryCta', sp)}>Learn more</span>
+        }, sp)} className={sc('secondaryCta', sp)}>Dismiss</span>
         {ad.cta && (
           <span style={ss('cta', {
             flex: 1, padding: 12, background: 'transparent', border: 'none',
