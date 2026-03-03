@@ -380,7 +380,7 @@ export function renderFootnote(p: VariantRenderProps) {
 
   return (
     <WrapLink p={p} containerStyle={containerStyle}>
-      <div style={{ height: 1, background: 'rgba(0,0,0,0.06)', marginBottom: 12 }} />
+      <div style={{ height: 1, background: 'currentColor', opacity: 0.08, marginBottom: 12 }} />
       <div style={ss('inner', { display: 'flex', alignItems: 'flex-start', gap: 8, padding: 0 }, sp)} className={sc('inner', sp)}>
         <span style={{ fontSize: 11, color: 'rgba(0,0,0,0.25)', fontWeight: 600, marginTop: 1, flexShrink: 0 }}>↳</span>
         <div>
@@ -556,7 +556,7 @@ export function renderLabeled(p: VariantRenderProps) {
           borderRight: '1px solid rgba(0,0,0,0.05)',
           writingMode: 'vertical-rl', textOrientation: 'mixed',
         }, sp)} className={sc('footer', sp)}>
-          <span style={{ fontSize: 9, fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'rgba(0,0,0,0.2)', transform: 'rotate(180deg)' }}>
+          <span style={{ fontSize: 9, fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', opacity: 0.25, transform: 'rotate(180deg)' }}>
             {labelText}
           </span>
         </div>
@@ -699,7 +699,7 @@ export function renderPill(p: VariantRenderProps) {
     <WrapLink p={p} containerStyle={containerStyle}>
       {ad.favicon && <img src={ad.favicon} alt="" loading="lazy" style={ss('favicon', { width: 16, height: 16, borderRadius: 4, objectFit: 'contain', flexShrink: 0 }, sp)} className={sc('favicon', sp)} onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }} />}
       {ad.brandName && <span style={ss('brand', { fontSize: 13, fontWeight: 600, color: '#1A1A1A' }, sp)} className={sc('brand', sp)}>{ad.brandName}</span>}
-      <span style={{ width: 1, height: 14, background: 'rgba(0,0,0,0.1)', flexShrink: 0 }} />
+      <span style={{ width: 1, height: 14, background: 'currentColor', opacity: 0.12, flexShrink: 0 }} />
       {ad.title && <span style={ss('title', { fontSize: 12.5, color: 'rgba(0,0,0,0.45)', margin: 0 }, sp)} className={sc('title', sp)}>{ad.title}</span>}
       {showLabel && <span style={ss('label', { ...inlineLabel, fontSize: 10, color: 'rgba(0,0,0,0.25)', border: 'none', padding: 0, marginLeft: 0 }, sp)} className={sc('label', sp)}>{labelText.toLowerCase()}</span>}
     </WrapLink>
@@ -747,7 +747,7 @@ export function renderDivider(p: VariantRenderProps) {
     lineHeight: 1.5,
   }, sp);
 
-  const lineStyle: React.CSSProperties = { flex: 1, height: 1, background: 'rgba(0,0,0,0.06)' };
+  const lineStyle: React.CSSProperties = { flex: 1, height: 1, background: 'currentColor', opacity: 0.08 };
 
   return (
     <WrapLink p={p} containerStyle={containerStyle}>
@@ -756,7 +756,7 @@ export function renderDivider(p: VariantRenderProps) {
         {ad.favicon && <img src={ad.favicon} alt="" loading="lazy" style={ss('favicon', { width: 14, height: 14, borderRadius: 3, objectFit: 'contain' }, sp)} className={sc('favicon', sp)} onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }} />}
         {ad.brandName && <span style={ss('brand', { fontSize: 12, fontWeight: 600, color: 'rgba(0,0,0,0.35)' }, sp)} className={sc('brand', sp)}>{ad.brandName}</span>}
         {showLabel && <span style={ss('label', { ...inlineLabel, fontSize: 10, color: 'rgba(0,0,0,0.2)', border: 'none', padding: 0, marginLeft: 0 }, sp)} className={sc('label', sp)}>{labelText.toLowerCase()}</span>}
-        <span style={{ color: 'rgba(0,0,0,0.15)' }}>·</span>
+        <span style={{ opacity: 0.2 }}>·</span>
         {ad.cta && <span style={ss('cta', { ...linkCta, fontSize: 12, padding: 0, marginTop: 0 }, sp)} className={sc('cta', sp)}>{ad.cta} ↗</span>}
       </div>
       <div style={lineStyle} />
@@ -781,7 +781,7 @@ export function renderToolbar(p: VariantRenderProps) {
       {ad.favicon && <img src={ad.favicon} alt="" loading="lazy" style={ss('favicon', { ...D.favicon, borderRadius: 5, flexShrink: 0 }, sp)} className={sc('favicon', sp)} onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }} />}
       <div style={{ flex: 1, minWidth: 0 }}>
         {ad.brandName && <span style={ss('brand', { fontSize: 13, fontWeight: 600, color: '#1A1A1A' }, sp)} className={sc('brand', sp)}>{ad.brandName}</span>}
-        {ad.title && <span style={ss('title', { fontSize: 12, color: 'rgba(0,0,0,0.35)', marginLeft: 8, margin: 0 }, sp)} className={sc('title', sp)}>{ad.title}</span>}
+        {ad.title && <span style={ss('title', { fontSize: 12, color: 'rgba(0,0,0,0.35)', margin: 0, marginLeft: 8 }, sp)} className={sc('title', sp)}>{ad.title}</span>}
       </div>
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
         {showLabel && <span style={ss('label', { ...inlineLabel, fontSize: 9, color: 'rgba(0,0,0,0.2)', border: 'none', padding: 0, marginLeft: 0 }, sp)} className={sc('label', sp)}>{labelText.toLowerCase()}</span>}
@@ -888,6 +888,100 @@ export function renderNotification(p: VariantRenderProps) {
   );
 }
 
+// ── Hyperlink ────────────────────────────────────────────────────
+
+export function renderHyperlink(p: VariantRenderProps) {
+  const { ad, slotProps: sp, showLabel, labelText, hovered } = p;
+  const containerStyle = ss('container', {
+    display: 'inline', fontFamily: FONT, textDecoration: 'none',
+    color: '#2563EB', cursor: 'pointer', lineHeight: 1.6,
+    background: 'none', border: 'none', boxShadow: 'none',
+    borderRadius: 0, padding: 0, position: 'relative' as const,
+  }, sp);
+
+  return (
+    <a
+      {...(p.linkProps as React.AnchorHTMLAttributes<HTMLAnchorElement>)}
+      ref={p.containerRef as React.Ref<HTMLAnchorElement>}
+      className={p.className}
+      style={m(containerStyle, p.style)}
+      onClick={p.handleClick}
+      onMouseEnter={() => p.setHovered(true)}
+      onMouseLeave={() => p.setHovered(false)}
+      data-gravity-ad
+    >
+      <span style={ss('text', {
+        fontSize: 'inherit', color: 'inherit', textDecoration: 'underline',
+        textUnderlineOffset: 2, textDecorationColor: hovered ? 'currentColor' : 'rgba(37,99,235,0.4)',
+        transition: 'text-decoration-color 150ms ease',
+      }, sp)} className={sc('text', sp)}>{ad.adText}</span>
+      {showLabel && (
+        <span style={ss('label', {
+          fontSize: '0.75em', fontWeight: 600, letterSpacing: '0.04em', textTransform: 'uppercase',
+          color: 'rgba(37,99,235,0.5)', marginLeft: 5, textDecoration: 'none',
+          display: 'inline', verticalAlign: 'super', lineHeight: 1,
+        }, sp)} className={sc('label', sp)}>{labelText}</span>
+      )}
+    </a>
+  );
+}
+
+// ── Text Link ────────────────────────────────────────────────────
+
+export function renderTextLink(p: VariantRenderProps) {
+  const { ad, slotProps: sp, showLabel, labelText, hovered } = p;
+  const containerStyle = ss('container', {
+    display: 'inline', fontFamily: FONT, textDecoration: 'none',
+    color: '#2563EB', cursor: 'pointer', lineHeight: 1.7,
+    background: 'none', border: 'none', boxShadow: 'none',
+    borderRadius: 0, padding: 0, position: 'relative' as const,
+    fontSize: 'inherit',
+  }, sp);
+
+  return (
+    <a
+      {...(p.linkProps as React.AnchorHTMLAttributes<HTMLAnchorElement>)}
+      ref={p.containerRef as React.Ref<HTMLAnchorElement>}
+      className={p.className}
+      style={m(containerStyle, p.style)}
+      onClick={p.handleClick}
+      onMouseEnter={() => p.setHovered(true)}
+      onMouseLeave={() => p.setHovered(false)}
+      data-gravity-ad
+    >
+      {ad.favicon && (
+        <img src={ad.favicon} alt="" loading="lazy"
+          style={ss('favicon', {
+            width: '1em', height: '1em', borderRadius: 3, objectFit: 'contain',
+            verticalAlign: '-0.15em', marginRight: 5, display: 'inline',
+          }, sp)}
+          className={sc('favicon', sp)}
+          onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }}
+        />
+      )}
+      {ad.brandName && (
+        <span style={ss('brand', {
+          fontWeight: 700, color: '#1A1A1A', textDecoration: 'none',
+        }, sp)} className={sc('brand', sp)}>{ad.brandName}</span>
+      )}
+      {showLabel && (
+        <span style={ss('label', {
+          fontSize: '0.72em', fontWeight: 600, letterSpacing: '0.03em',
+          color: 'rgba(0,0,0,0.35)', background: 'rgba(0,0,0,0.05)',
+          padding: '2px 6px', borderRadius: 4, marginLeft: 6, marginRight: 4,
+          textDecoration: 'none', display: 'inline-block', verticalAlign: 'middle',
+          lineHeight: 1.3, border: 'none', textTransform: 'capitalize',
+        }, sp)} className={sc('label', sp)}>{labelText}</span>
+      )}
+      <span style={ss('text', {
+        color: 'inherit', textDecoration: 'underline', textUnderlineOffset: 2,
+        textDecorationColor: hovered ? 'currentColor' : 'rgba(37,99,235,0.4)',
+        transition: 'text-decoration-color 150ms ease',
+      }, sp)} className={sc('text', sp)}>{ad.adText}</span>
+    </a>
+  );
+}
+
 // ═══════════════════════════════════════════════════════════════════
 // RENDERER MAP
 // ═══════════════════════════════════════════════════════════════════
@@ -914,4 +1008,6 @@ export const renderers: Record<string, (p: VariantRenderProps) => React.ReactEle
   toolbar: renderToolbar,
   tooltip: renderTooltip,
   notification: renderNotification,
+  hyperlink: renderHyperlink,
+  'text-link': renderTextLink,
 };

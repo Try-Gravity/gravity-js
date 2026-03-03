@@ -16,7 +16,8 @@ export type GravityAdVariant =
   | 'bubble' | 'contextual' | 'native' | 'footnote' | 'quote' | 'suggestion'
   | 'accent' | 'side-panel' | 'labeled' | 'spotlight' | 'embed' | 'split-action'
   | 'pill' | 'banner' | 'divider' | 'toolbar'
-  | 'tooltip' | 'notification';
+  | 'tooltip' | 'notification'
+  | 'hyperlink' | 'text-link';
 
 /**
  * Style + className overrides for individual elements inside `<GravityAd />`.

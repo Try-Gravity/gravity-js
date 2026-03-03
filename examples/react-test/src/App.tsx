@@ -56,7 +56,11 @@ const TEMPLATES: Template[] = [
     variant: 'card', radius: 12, borderWidth: 1.5,
     showBrand: true, showTitle: true, showCta: true, showLabel: true, labelText: 'Sponsored',
     light: { bg: 'transparent', fg: '#1A1A1A', muted: 'rgba(0,0,0,0.5)', border: 'rgba(0,0,0,0.1)', cta: 'transparent', ctaFg: '#1A1A1A', shadow: 'none' },
-    dark: { bg: 'transparent', fg: '#E0E0E0', muted: 'rgba(255,255,255,0.5)', border: 'rgba(255,255,255,0.1)', cta: 'transparent', ctaFg: '#E0E0E0', shadow: 'none' } },
+    dark: { bg: 'transparent', fg: '#E0E0E0', muted: 'rgba(255,255,255,0.5)', border: 'rgba(255,255,255,0.1)', cta: 'transparent', ctaFg: '#E0E0E0', shadow: 'none' },
+    extraSlotProps: {
+      light: { cta: { style: { border: '1.5px solid rgba(0,0,0,0.1)' } } },
+      dark: { cta: { style: { border: '1.5px solid rgba(255,255,255,0.1)' } } },
+    } },
 
   { id: 'tinted', name: 'Tinted', category: 'Cards',
     description: 'Brand-color tinted background',
@@ -87,12 +91,6 @@ const TEMPLATES: Template[] = [
     description: 'Toast-style notification with timestamp',
     variant: 'notification', radius: 14, borderWidth: 0,
     showBrand: true, showTitle: true, showCta: false, showLabel: true, labelText: 'ad',
-    light: E, dark: E },
-
-  { id: 'spotlight', name: 'Spotlight', category: 'Cards',
-    description: 'Centered hero with large icon and prominent CTA',
-    variant: 'spotlight', radius: 16, borderWidth: 1,
-    showBrand: false, showTitle: true, showCta: true, showLabel: true, labelText: 'Sponsored',
     light: E, dark: E },
 
   { id: 'labeled', name: 'Labeled', category: 'Cards',
@@ -177,10 +175,22 @@ const TEMPLATES: Template[] = [
     showBrand: true, showTitle: false, showCta: true, showLabel: true, labelText: 'ad',
     light: E, dark: E },
 
-  { id: 'minimal', name: 'Minimal', category: 'Inline',
+  { id: 'minimal', name: 'Minimal', category: 'Native',
     description: 'Borderless text block with inline link CTA',
     variant: 'minimal', radius: 0, borderWidth: 0,
     showBrand: true, showTitle: true, showCta: true, showLabel: true, labelText: 'Sponsored',
+    light: E, dark: E },
+
+  { id: 'hyperlink', name: 'Hyperlink', category: 'Inline',
+    description: 'Inline text link with ad label — blends into paragraphs',
+    variant: 'hyperlink', radius: 0, borderWidth: 0,
+    showBrand: false, showTitle: false, showCta: false, showLabel: true, labelText: 'ad',
+    light: E, dark: E },
+
+  { id: 'text-link', name: 'Text Link', category: 'Inline',
+    description: 'Branded inline link with favicon, name, badge, and ad copy',
+    variant: 'text-link', radius: 0, borderWidth: 0,
+    showBrand: true, showTitle: false, showCta: false, showLabel: true, labelText: 'Sponsored',
     light: E, dark: E },
 ];
 
@@ -192,6 +202,7 @@ function darkAdSlots(variant: GravityAdVariant): GravityAdSlotProps {
 
   const base: GravityAdSlotProps = {
     container: { style: {
+      color: '#FAFAFA',
       background: isTransparent ? 'transparent' : 'rgba(255,255,255,0.04)',
       borderColor: isTransparent ? 'transparent' : 'rgba(255,255,255,0.08)',
       boxShadow: isTransparent ? 'none' : undefined,
@@ -208,29 +219,33 @@ function darkAdSlots(variant: GravityAdVariant): GravityAdSlotProps {
   };
 
   if (variant === 'tooltip') {
-    base.container = { style: { background: '#27272A', borderColor: 'rgba(255,255,255,0.1)', boxShadow: '0 4px 20px rgba(0,0,0,0.5)' } };
+    base.container = { style: { ...base.container!.style, background: '#27272A', borderColor: 'rgba(255,255,255,0.1)', boxShadow: '0 4px 20px rgba(0,0,0,0.5)' } };
     base.arrow = { style: { background: '#27272A', borderColor: 'rgba(255,255,255,0.1)' } };
     base.cta = { style: { background: 'rgba(255,255,255,0.08)', color: '#FAFAFA' } };
   }
 
   if (variant === 'notification') {
-    base.container = { style: { background: '#27272A', borderColor: 'transparent', boxShadow: '0 4px 24px rgba(0,0,0,0.4), 0 0 0 1px rgba(255,255,255,0.06)' } };
+    base.container = { style: { ...base.container!.style, background: '#27272A', borderColor: 'transparent', boxShadow: '0 4px 24px rgba(0,0,0,0.4), 0 0 0 1px rgba(255,255,255,0.06)' } };
   }
 
   if (variant === 'toolbar') {
-    base.container = { style: { background: '#27272A', borderColor: 'transparent', boxShadow: '0 2px 16px rgba(0,0,0,0.4), 0 0 0 1px rgba(255,255,255,0.06)' } };
+    base.container = { style: { ...base.container!.style, background: '#27272A', borderColor: 'transparent', boxShadow: '0 2px 16px rgba(0,0,0,0.4), 0 0 0 1px rgba(255,255,255,0.06)' } };
     base.cta = { style: { background: 'rgba(255,255,255,0.1)', color: '#FAFAFA' } };
   }
 
   if (variant === 'bubble') {
-    base.container = { style: { background: 'transparent', borderColor: 'transparent', boxShadow: 'none' } };
+    base.container = { style: { ...base.container!.style, background: 'transparent', borderColor: 'transparent', boxShadow: 'none' } };
     base.inner = { style: { background: 'rgba(255,255,255,0.06)' } };
     base.brand = { style: { color: 'rgba(255,255,255,0.5)' } };
     base.label = { style: { color: 'rgba(255,255,255,0.3)', background: 'rgba(255,255,255,0.06)', borderColor: 'transparent' } };
   }
 
+  if (variant === 'card' || variant === 'inline' || variant === 'minimal') {
+    base.cta = { style: { background: '#3B82F6', color: '#FFFFFF' } };
+  }
+
   if (variant === 'suggestion') {
-    base.container = { style: { background: 'rgba(255,255,255,0.06)', borderColor: 'rgba(255,255,255,0.08)' } };
+    base.container = { style: { ...base.container!.style, background: 'rgba(255,255,255,0.06)', borderColor: 'rgba(255,255,255,0.08)' } };
   }
 
   if (variant === 'split-action') {
@@ -244,6 +259,40 @@ function darkAdSlots(variant: GravityAdVariant): GravityAdSlotProps {
 
   if (variant === 'embed') {
     base.iconWrapper = { style: { background: 'linear-gradient(135deg, rgba(99,102,241,0.15), rgba(99,102,241,0.05))' } };
+  }
+
+  if (variant === 'side-panel') {
+    base.container = { style: { ...base.container!.style, background: 'rgba(255,255,255,0.04)', borderColor: 'rgba(255,255,255,0.08)' } };
+    base.iconWrapper = { style: { background: 'rgba(255,255,255,0.04)', borderRight: '1px solid rgba(255,255,255,0.06)' } };
+  }
+
+  if (variant === 'labeled') {
+    base.footer = { style: { background: 'rgba(255,255,255,0.03)', borderRight: '1px solid rgba(255,255,255,0.06)', color: '#A1A1AA' } };
+  }
+
+  if (variant === 'quote') {
+    base.container = { style: { ...base.container!.style, background: 'rgba(255,255,255,0.02)', borderLeftColor: '#818CF8' } };
+  }
+
+  if (variant === 'native') {
+    base.container = { style: { ...base.container!.style, background: 'transparent', borderLeftColor: 'rgba(255,255,255,0.12)' } };
+  }
+
+  if (variant === 'footnote') {
+    base.cta = { style: { color: '#A5B4FC' } };
+  }
+
+  if (variant === 'hyperlink') {
+    base.container = { style: { color: '#93C5FD', background: 'none', borderColor: 'transparent', boxShadow: 'none' } };
+    base.text = { style: { color: 'inherit', textDecorationColor: 'rgba(147,197,253,0.4)' } };
+    base.label = { style: { color: 'rgba(147,197,253,0.5)', borderColor: 'transparent' } };
+  }
+
+  if (variant === 'text-link') {
+    base.container = { style: { color: '#93C5FD', background: 'none', borderColor: 'transparent', boxShadow: 'none' } };
+    base.brand = { style: { color: '#FAFAFA' } };
+    base.text = { style: { color: 'inherit', textDecorationColor: 'rgba(147,197,253,0.4)' } };
+    base.label = { style: { color: 'rgba(255,255,255,0.4)', background: 'rgba(255,255,255,0.08)', borderColor: 'transparent' } };
   }
 
   return base;
@@ -278,7 +327,7 @@ function buildCustomSlotProps(p: { bg: string; fg: string; muted: string; border
 function buildCode(
   mode: 'light' | 'dark', v: GravityAdVariant, showLabel: boolean, lt: string,
   showBrand: boolean, showTitle: boolean, showCta: boolean,
-  p: { bg: string; fg: string; muted: string; cta: string; ctaFg: string; borderColor: string; borderWidth: number; shadow: string; radius: number; accentColor: string },
+  p: { bg: string; fg: string; muted: string; cta: string; ctaFg: string; borderColor: string; borderWidth: number; shadow: string; radius: number; accentColor: string; extraStyle?: CSSProperties },
 ): string {
   const hasCustom = !!(p.bg || p.fg || p.muted || p.cta || p.ctaFg || p.borderColor);
   const useDarkBase = mode === 'dark' && !hasCustom && !p.accentColor;
@@ -290,17 +339,54 @@ function buildCode(
   if (p.radius !== 10) styleParts.push(`borderRadius: ${p.radius}`);
   if (p.shadow) styleParts.push(`boxShadow: '${p.shadow}'`);
   if (p.borderWidth !== 1) styleParts.push(`borderWidth: ${p.borderWidth}`);
+  if (p.extraStyle) {
+    for (const [k, val] of Object.entries(p.extraStyle)) {
+      styleParts.push(`${k}: '${val}'`);
+    }
+  }
   if (styleParts.length) l.push(`  style={{ ${styleParts.join(', ')} }}`);
   const hasAccent = !!p.accentColor;
   if (useDarkBase || hasCustom || hasAccent) {
     l.push(`  slotProps={{`);
     if (useDarkBase) {
-      l.push(`    container: { style: { background: 'rgba(255,255,255,0.04)', borderColor: 'rgba(255,255,255,0.08)' } },`);
-      l.push(`    brand: { style: { color: '#FAFAFA' } },`);
+      const isTransparentVariant = ['minimal', 'footnote', 'divider', 'native', 'quote', 'hyperlink', 'text-link'].includes(v);
+      const isSolidBg = ['tooltip', 'toolbar', 'notification'].includes(v);
+      const isBubble = v === 'bubble';
+      const isButtonCta = ['card', 'inline', 'minimal'].includes(v);
+
+      if (isBubble) {
+        l.push(`    container: { style: { background: 'transparent', border: 'none', boxShadow: 'none' } },`);
+        l.push(`    inner: { style: { background: 'rgba(255,255,255,0.06)' } },`);
+      } else if (isSolidBg) {
+        l.push(`    container: { style: { background: '#27272A', boxShadow: '0 2px 16px rgba(0,0,0,0.4), 0 0 0 1px rgba(255,255,255,0.06)' } },`);
+      } else if (isTransparentVariant) {
+        l.push(`    container: { style: { background: 'transparent', borderColor: 'transparent' } },`);
+      } else {
+        l.push(`    container: { style: { background: 'rgba(255,255,255,0.04)', borderColor: 'rgba(255,255,255,0.08)' } },`);
+      }
+      if (isBubble) {
+        l.push(`    brand: { style: { color: 'rgba(255,255,255,0.5)' } },`);
+      } else {
+        l.push(`    brand: { style: { color: '#FAFAFA' } },`);
+      }
       l.push(`    title: { style: { color: '#FAFAFA' } },`);
       l.push(`    text: { style: { color: '#A1A1AA' } },`);
-      l.push(`    label: { style: { color: '#A1A1AA', borderColor: 'rgba(255,255,255,0.1)' } },`);
-      l.push(`    cta: { style: { color: '#A5B4FC' } },`);
+      if (isBubble) {
+        l.push(`    label: { style: { color: 'rgba(255,255,255,0.3)', background: 'rgba(255,255,255,0.06)' } },`);
+      } else {
+        l.push(`    label: { style: { color: '#A1A1AA', borderColor: 'rgba(255,255,255,0.1)' } },`);
+      }
+      if (isButtonCta) {
+        l.push(`    cta: { style: { background: '#3B82F6', color: '#FFFFFF' } },`);
+      } else if (isSolidBg) {
+        l.push(`    cta: { style: { background: 'rgba(255,255,255,0.1)', color: '#FAFAFA' } },`);
+      } else if (v === 'banner') {
+        l.push(`    cta: { style: { background: '#FAFAFA', color: '#18181B' } },`);
+      } else {
+        l.push(`    cta: { style: { color: '#A5B4FC' } },`);
+      }
+      if (v === 'accent') l.push(`    accentBar: { style: { background: '#818CF8' } },`);
+      if (v === 'tooltip') l.push(`    arrow: { style: { background: '#27272A', borderColor: 'rgba(255,255,255,0.1)' } },`);
     } else {
       if (p.bg) l.push(`    container: { style: { background: '${p.bg}'${p.borderColor ? `, borderColor: '${p.borderColor}'` : ''} } },`);
       else if (p.borderColor) l.push(`    container: { style: { borderColor: '${p.borderColor}' } },`);
@@ -453,12 +539,13 @@ function ColorPicker({ label, value, onChange, swatches }: { label: string; valu
 
 function ChatContext({ children, mode, variant, adBody }: { children: ReactNode; mode: 'light' | 'dark'; variant: GravityAdVariant; adBody: string }) {
   const isCompact = ['pill', 'toolbar', 'divider', 'banner'].includes(variant);
+  const isHyperlink = variant === 'hyperlink' || variant === 'text-link';
 
   const msgStyle = (isUser: boolean): CSSProperties => ({
     fontSize: 13.5, lineHeight: 1.6, color: 'var(--fg)',
     ...(isUser ? {
       background: mode === 'dark' ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)',
-      borderRadius: '4px 16px 16px 16px',
+      borderRadius: '16px 4px 16px 16px',
       padding: '12px 16px',
       maxWidth: '85%',
     } : {}),
@@ -490,22 +577,28 @@ function ChatContext({ children, mode, variant, adBody }: { children: ReactNode;
         </div>
         <div style={msgStyle(false)}>
           <p style={{ margin: '0 0 12px' }}>There are a few approaches that work well for AI platforms looking to generate revenue without disrupting conversations:</p>
-          <p style={{ margin: isCompact ? 0 : '0 0 12px' }}><strong>Contextual native ads</strong> are the most popular option — they analyze the conversation topic and serve relevant brand placements that feel like natural recommendations rather than interruptions.</p>
+          <p style={{ margin: (isCompact || isHyperlink) ? 0 : '0 0 12px' }}><strong>Contextual native ads</strong> are the most popular option — they analyze the conversation topic and serve relevant brand placements that feel like natural recommendations rather than interruptions.</p>
           {isCompact && (
-            <p style={{ margin: '12px 0 0', color: 'var(--fg)' }}>{adBody}</p>
+            <p style={{
+              margin: '12px 0 0', cursor: 'pointer', textDecoration: 'underline', textUnderlineOffset: 2,
+              color: mode === 'dark' ? '#93C5FD' : '#2563EB',
+              textDecorationColor: mode === 'dark' ? 'rgba(147,197,253,0.3)' : 'rgba(37,99,235,0.3)',
+            }}>{adBody}</p>
+          )}
+          {isHyperlink && (
+            <p style={{ margin: '12px 0 0' }}>
+              For example, platforms like {children} make this seamless by matching ads to conversation context.
+            </p>
           )}
         </div>
       </div>
 
-      <div style={{ padding: '0' }}>
-        {children}
-      </div>
-
-      <div>
-        <div style={msgStyle(false)}>
-          <p style={{ margin: 0 }}>The key is matching the ad format to your UI density. Card-style placements work between messages, while inline formats can sit within response text without breaking reading flow.</p>
+      {!isHyperlink && (
+        <div style={{ padding: '0' }}>
+          {children}
         </div>
-      </div>
+      )}
+
     </div>
   );
 }
@@ -587,7 +680,7 @@ function App() {
 
   // Preview
   const [previewMode, setPreviewMode] = useState<'isolated' | 'context'>('context');
-  const [previewWidth, setPreviewWidth] = useState<'full' | 'mobile' | 'tablet'>('full');
+  const [previewWidth, setPreviewWidth] = useState<'full' | 'mobile'>('full');
 
   // Category filter
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
@@ -655,14 +748,14 @@ function App() {
     if (variant === 'accent') return { accentBar: { style: { background: accentColor } } };
     if (variant === 'quote') return { container: { style: { borderLeftColor: accentColor } } };
     if (variant === 'native') return { container: { style: { borderLeftColor: accentColor } } };
-    if (['spotlight', 'contextual', 'suggestion', 'side-panel', 'embed', 'notification'].includes(variant))
+    if (['suggestion', 'side-panel', 'embed', 'notification'].includes(variant))
       return { iconWrapper: { style: { background: accentColor } } };
     return undefined;
   })() : undefined;
 
   const finalSlotProps = mergeSlotProps(mergeSlotProps(slotProps, extraSlotBase), accentSlots);
 
-  const code = buildCode(mode, variant, showLabel, labelText, showBrand, showTitle, showCta, { bg, fg, muted, cta, ctaFg, borderColor, borderWidth, shadow, radius, accentColor });
+  const code = buildCode(mode, variant, showLabel, labelText, showBrand, showTitle, showCta, { bg, fg, muted, cta, ctaFg, borderColor, borderWidth, shadow, radius, accentColor, extraStyle: currentTemplate.extraStyle });
   const fullCode = `import { GravityAd } from '@gravity-ai/react';\n\n${code}`;
 
   const filteredTemplates = activeCategory
@@ -680,24 +773,14 @@ function App() {
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           <img
-            src="/Gravity lockup white on black libre baskerville.png"
+            src="/Gravity lockup black on white libre baskerville.png"
             alt="Gravity"
             style={{
               height: 18,
               filter: mode === 'light' ? 'invert(1)' : 'none',
               transition: 'filter 250ms ease',
             }}
-            onError={(e) => {
-              const target = e.target as HTMLImageElement;
-              target.style.display = 'none';
-              const fallback = target.nextElementSibling;
-              if (fallback) (fallback as HTMLElement).style.display = 'flex';
-            }}
           />
-          <span style={{ display: 'none', alignItems: 'center', gap: 6 }}>
-            <img src="https://www.trygravity.ai/favicon.png" alt="" style={{ width: 22, height: 22, borderRadius: 5 }} />
-            <span style={{ fontSize: 14, fontWeight: 700 }}>Gravity</span>
-          </span>
           <span style={{ color: 'var(--border-strong, var(--border))', margin: '0 2px', fontWeight: 300 }}>/</span>
           <span style={{ fontSize: 12, color: 'var(--muted)', fontWeight: 500 }}>React SDK Playground</span>
         </div>
@@ -709,15 +792,13 @@ function App() {
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <Seg options={['In context', 'Isolated']} value={previewMode === 'context' ? 'In context' : 'Isolated'} onChange={v => setPreviewMode(v === 'In context' ? 'context' : 'isolated')} />
           <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-            {(['mobile', 'tablet', 'full'] as const).map(w => (
+            {(['mobile', 'full'] as const).map(w => (
               <button key={w} onClick={() => setPreviewWidth(w)} style={{
                 ...S.seg(previewWidth === w),
                 padding: '4px 8px', fontSize: 11,
               }}>
                 {w === 'mobile' ? (
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12" y2="18"/></svg>
-                ) : w === 'tablet' ? (
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="4" y="2" width="16" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12" y2="18"/></svg>
                 ) : (
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
                 )}
@@ -736,7 +817,7 @@ function App() {
         }}>
           <div style={{
             width: '100%',
-            maxWidth: previewWidth === 'mobile' ? 360 : previewWidth === 'tablet' ? 540 : (variant === 'pill' || variant === 'divider' || variant === 'banner' || variant === 'toolbar' ? 560 : 520),
+            maxWidth: previewWidth === 'mobile' ? 375 : 672,
             transition: 'max-width 300ms ease',
           }}>
             <FadeIn id={`${currentTemplate.id}-${previewMode}`}>
@@ -772,6 +853,7 @@ function App() {
             <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--fg)', transition: 'color 200ms' }}>
               {currentTemplate.name}
             </span>
+            <span style={{ fontSize: 12, color: 'var(--border)', transition: 'color 200ms' }}>—</span>
             <span style={{ fontSize: 12, color: 'var(--muted)', transition: 'color 200ms' }}>
               {currentTemplate.description}
             </span>
@@ -817,14 +899,22 @@ function App() {
                   <input value={adTitle} onChange={e => setAdTitle(e.target.value)} style={S.input} placeholder="Headline" />
                 </div>
               </div>
-              <div style={S.grid(2)}>
-                <div>
-                  <div style={S.fieldLabel}>Body text</div>
-                  <input value={adBody} onChange={e => setAdBody(e.target.value)} style={S.input} placeholder="Ad body text" />
-                </div>
+              <div>
+                <div style={S.fieldLabel}>Body text</div>
+                <input value={adBody} onChange={e => setAdBody(e.target.value)} style={S.input} placeholder="Ad body text" />
+              </div>
+              <div style={S.grid(3)}>
                 <div>
                   <div style={S.fieldLabel}>CTA text</div>
                   <input value={ctaText} onChange={e => setCtaText(e.target.value)} style={S.input} placeholder="Learn More" />
+                </div>
+                <div>
+                  <div style={S.fieldLabel}>Label text</div>
+                  <input value={labelText} onChange={e => setLabelText(e.target.value)} style={S.input} placeholder="Sponsored" />
+                </div>
+                <div>
+                  <div style={S.fieldLabel}>Click URL</div>
+                  <input value="https://example.com" disabled style={{ ...S.input, opacity: 0.5 }} />
                 </div>
               </div>
               <div>
@@ -854,10 +944,6 @@ function App() {
                 <button onClick={() => setShowTitle(!showTitle)} style={S.pill(showTitle)}>Headline</button>
                 <button onClick={() => setShowCta(!showCta)} style={S.pill(showCta)}>CTA</button>
                 <button onClick={() => setShowLabel(!showLabel)} style={S.pill(showLabel)}>Label</button>
-                {showLabel && (
-                  <input value={labelText} onChange={e => setLabelText(e.target.value)}
-                    style={{ ...S.input, width: 100, marginLeft: 4 }} placeholder="Sponsored" />
-                )}
               </div>
             </div>
             <div style={S.sep} />
@@ -876,7 +962,7 @@ function App() {
             </div>
             <div style={S.grid(2)}>
               <ColorPicker label="Border" value={borderColor} onChange={setBorderColor} swatches={SWATCHES.border[mode]} />
-              {['accent', 'quote', 'native', 'spotlight', 'contextual', 'suggestion', 'side-panel', 'embed', 'notification'].includes(variant) ? (
+              {['accent', 'quote', 'native', 'suggestion', 'side-panel', 'embed', 'notification'].includes(variant) ? (
                 <ColorPicker
                   label={variant === 'accent' ? 'Accent bar' : variant === 'quote' || variant === 'native' ? 'Left border' : 'Icon background'}
                   value={accentColor} onChange={setAccentColor}
