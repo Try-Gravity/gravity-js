@@ -11,7 +11,12 @@ export interface AdResponse {
   clickUrl?: string;
 }
 
-export type GravityAdVariant = 'card' | 'inline' | 'minimal';
+export type GravityAdVariant =
+  | 'card' | 'inline' | 'minimal'
+  | 'bubble' | 'contextual' | 'native' | 'footnote' | 'quote' | 'suggestion'
+  | 'accent' | 'side-panel' | 'labeled' | 'spotlight' | 'embed' | 'split-action'
+  | 'pill' | 'banner' | 'divider' | 'toolbar'
+  | 'tooltip' | 'notification';
 
 /**
  * Style + className overrides for individual elements inside `<GravityAd />`.
@@ -41,6 +46,21 @@ export interface GravityAdSlotProps {
   text?: { style?: CSSProperties; className?: string };
   /** CTA button `<span>` */
   cta?: { style?: CSSProperties; className?: string };
+
+  // Variant-specific slots
+
+  /** Icon wrapper (larger background container around favicon) */
+  iconWrapper?: { style?: CSSProperties; className?: string };
+  /** Colored accent bar (top of `accent` variant) */
+  accentBar?: { style?: CSSProperties; className?: string };
+  /** Secondary CTA (`split-action` variant) */
+  secondaryCta?: { style?: CSSProperties; className?: string };
+  /** Footer area */
+  footer?: { style?: CSSProperties; className?: string };
+  /** Tooltip arrow element */
+  arrow?: { style?: CSSProperties; className?: string };
+  /** Context header text (`contextual` variant) */
+  contextHeader?: { style?: CSSProperties; className?: string };
 }
 
 export interface GravityAdProps {
