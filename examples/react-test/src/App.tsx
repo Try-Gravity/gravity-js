@@ -679,7 +679,7 @@ function App() {
   const [accentColor, setAccentColor] = useState('');
 
   // Preview
-  const [previewMode, setPreviewMode] = useState<'isolated' | 'context'>('context');
+  const [previewMode, setPreviewMode] = useState<'isolated' | 'context'>('isolated');
   const [previewWidth, setPreviewWidth] = useState<'full' | 'mobile'>('full');
 
   // Category filter
@@ -790,7 +790,7 @@ function App() {
       <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
         {/* Preview controls */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <Seg options={['In context', 'Isolated']} value={previewMode === 'context' ? 'In context' : 'Isolated'} onChange={v => setPreviewMode(v === 'In context' ? 'context' : 'isolated')} />
+          <Seg options={['Isolated', 'In context']} value={previewMode === 'isolated' ? 'Isolated' : 'In context'} onChange={v => setPreviewMode(v === 'Isolated' ? 'isolated' : 'context')} />
           <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
             {(['mobile', 'full'] as const).map(w => (
               <button key={w} onClick={() => setPreviewWidth(w)} style={{
@@ -881,7 +881,6 @@ function App() {
                 </button>
               );
             })}
-            <button onClick={() => setAdNull(true)} style={S.pill(adNull)}>None</button>
           </div>
         </Panel>
 
