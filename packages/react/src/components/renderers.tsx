@@ -193,13 +193,13 @@ export function renderInline(p: VariantRenderProps) {
 
   return (
     <WrapLink p={p} containerStyle={containerStyle} hoverStyle={hovered ? D.containerHover : undefined}>
-      <div style={ss('inner', { ...D.inner, flexDirection: 'row', alignItems: 'center', gap: 14, padding: '12px 16px' }, sp)} className={sc('inner', sp)}>
-        <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 8 }}>
+      <div style={ss('inner', { ...D.inner, flexDirection: 'row', alignItems: 'center', gap: 14, padding: '12px 16px', flexWrap: 'wrap' }, sp)} className={sc('inner', sp)}>
+        <div style={{ flex: '1 1 140px', minWidth: 0, display: 'flex', flexDirection: 'column', gap: 8 }}>
           {hasHeader && (
             <div style={ss('header', D.header, sp)} className={sc('header', sp)}>
               {ad.favicon && <img src={ad.favicon} alt="" loading="lazy" style={ss('favicon', D.favicon, sp)} className={sc('favicon', sp)} onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }} />}
               {ad.brandName && <span style={ss('brand', D.brand, sp)} className={sc('brand', sp)}>{ad.brandName}</span>}
-              {showLabel && <span style={ss('label', D.label, sp)} className={sc('label', sp)}>{labelText}</span>}
+              {showLabel && <span style={ss('label', { ...D.label, marginLeft: 0 }, sp)} className={sc('label', sp)}>{labelText}</span>}
             </div>
           )}
           <div style={ss('body', { ...D.body, gap: 2 }, sp)} className={sc('body', sp)}>
@@ -220,26 +220,31 @@ export function renderMinimal(p: VariantRenderProps) {
   const containerStyle = ss('container', {
     ...D.container, background: 'transparent', border: 'none',
     boxShadow: 'none', borderRadius: 0, overflow: 'visible',
+    borderLeft: '2px solid rgba(0,0,0,0.06)',
   }, sp);
-  const hoverExtra = hovered ? { boxShadow: 'none', transform: 'none' } as React.CSSProperties : undefined;
+  const hoverExtra = hovered ? { boxShadow: 'none', transform: 'none', borderLeftColor: 'rgba(37,99,235,0.3)' } as React.CSSProperties : undefined;
 
   const hasHeader = ad.favicon || ad.brandName || showLabel;
 
   return (
     <WrapLink p={p} containerStyle={containerStyle} hoverStyle={hoverExtra}>
-      <div style={ss('inner', { ...D.inner, padding: '8px 0' }, sp)} className={sc('inner', sp)}>
+      <div style={ss('inner', { ...D.inner, padding: '6px 0 6px 16px', gap: 8 }, sp)} className={sc('inner', sp)}>
         {hasHeader && (
           <div style={ss('header', D.header, sp)} className={sc('header', sp)}>
-            {ad.favicon && <img src={ad.favicon} alt="" loading="lazy" style={ss('favicon', D.favicon, sp)} className={sc('favicon', sp)} onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }} />}
-            {ad.brandName && <span style={ss('brand', D.brand, sp)} className={sc('brand', sp)}>{ad.brandName}</span>}
-            {showLabel && <span style={ss('label', D.label, sp)} className={sc('label', sp)}>{labelText}</span>}
+            {ad.favicon && <img src={ad.favicon} alt="" loading="lazy" style={ss('favicon', { ...D.favicon, width: 16, height: 16, borderRadius: 4 }, sp)} className={sc('favicon', sp)} onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }} />}
+            {ad.brandName && <span style={ss('brand', { ...D.brand, fontSize: 12, color: 'rgba(0,0,0,0.5)' }, sp)} className={sc('brand', sp)}>{ad.brandName}</span>}
+            {showLabel && <span style={ss('label', { ...D.label, fontSize: 9, border: 'none', padding: 0, marginLeft: 0, color: 'rgba(0,0,0,0.25)' }, sp)} className={sc('label', sp)}>{labelText.toLowerCase()}</span>}
           </div>
         )}
         <div style={ss('body', D.body, sp)} className={sc('body', sp)}>
-          {ad.title && <p style={ss('title', D.title, sp)} className={sc('title', sp)}>{ad.title}</p>}
-          <p style={ss('text', D.text, sp)} className={sc('text', sp)}>{ad.adText}</p>
+          {ad.title && <p style={ss('title', { ...D.title, fontSize: 13.5 }, sp)} className={sc('title', sp)}>{ad.title}</p>}
+          <p style={ss('text', { ...D.text, fontSize: 13 }, sp)} className={sc('text', sp)}>{ad.adText}</p>
         </div>
-        {ad.cta && <span style={ss('cta', D.cta, sp)} className={sc('cta', sp)}>{ad.cta}</span>}
+        {ad.cta && (
+          <span style={ss('cta', { ...linkCta, fontSize: 13 }, sp)} className={sc('cta', sp)}>
+            {ad.cta} <ArrowRight />
+          </span>
+        )}
       </div>
     </WrapLink>
   );
@@ -345,22 +350,22 @@ export function renderContextual(p: VariantRenderProps) {
 export function renderNative(p: VariantRenderProps) {
   const { ad, slotProps: sp, showLabel, labelText } = p;
   const containerStyle = ss('container', {
-    ...D.container, background: 'rgba(0,0,0,0.015)', border: 'none',
-    borderLeft: '2px solid rgba(0,0,0,0.08)', borderRadius: 14,
+    ...D.container, background: 'rgba(0,0,0,0.02)', border: 'none',
+    borderLeft: '2px solid rgba(0,0,0,0.12)', borderRadius: 14,
     boxShadow: 'none', padding: '20px 24px', overflow: 'visible',
   }, sp);
 
   return (
     <WrapLink p={p} containerStyle={containerStyle}>
-      <p style={ss('text', { fontSize: 13.5, color: 'rgba(0,0,0,0.6)', margin: '0 0 14px', lineHeight: 1.6 }, sp)} className={sc('text', sp)}>{ad.adText}</p>
+      <p style={ss('text', { fontSize: 13.5, color: 'rgba(0,0,0,0.65)', margin: '0 0 14px', lineHeight: 1.6 }, sp)} className={sc('text', sp)}>{ad.adText}</p>
       <div style={ss('footer', { display: 'flex', alignItems: 'center', justifyContent: 'space-between' }, sp)} className={sc('footer', sp)}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           {ad.favicon && <img src={ad.favicon} alt="" loading="lazy" style={ss('favicon', { ...D.favicon, width: 14, height: 14, borderRadius: 3 }, sp)} className={sc('favicon', sp)} onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }} />}
-          {ad.brandName && <span style={ss('brand', { fontSize: 12, fontWeight: 600, color: 'rgba(0,0,0,0.4)' }, sp)} className={sc('brand', sp)}>{ad.brandName}</span>}
-          {showLabel && <span style={ss('label', { ...inlineLabel, fontSize: 10, color: 'rgba(0,0,0,0.2)', border: 'none', padding: 0, marginLeft: 0 }, sp)} className={sc('label', sp)}>{labelText}</span>}
+          {ad.brandName && <span style={ss('brand', { fontSize: 12, fontWeight: 600, color: 'rgba(0,0,0,0.55)' }, sp)} className={sc('brand', sp)}>{ad.brandName}</span>}
+          {showLabel && <span style={ss('label', { ...inlineLabel, fontSize: 10, color: 'rgba(0,0,0,0.3)', border: 'none', padding: 0, marginLeft: 0 }, sp)} className={sc('label', sp)}>{labelText}</span>}
         </div>
         {ad.cta && (
-          <span style={ss('cta', { ...linkCta, fontSize: 12, color: 'rgba(0,0,0,0.45)' }, sp)} className={sc('cta', sp)}>
+          <span style={ss('cta', { ...linkCta, fontSize: 12.5 }, sp)} className={sc('cta', sp)}>
             {ad.cta} <ArrowUpRight />
           </span>
         )}
@@ -381,16 +386,22 @@ export function renderFootnote(p: VariantRenderProps) {
   return (
     <WrapLink p={p} containerStyle={containerStyle}>
       <div style={{ height: 1, background: 'currentColor', opacity: 0.08, marginBottom: 12 }} />
-      <div style={ss('inner', { display: 'flex', alignItems: 'flex-start', gap: 8, padding: 0 }, sp)} className={sc('inner', sp)}>
-        <span style={{ fontSize: 11, color: 'rgba(0,0,0,0.25)', fontWeight: 600, marginTop: 1, flexShrink: 0 }}>↳</span>
+      <div style={ss('inner', { display: 'flex', alignItems: 'flex-start', gap: 10, padding: 0 }, sp)} className={sc('inner', sp)}>
+        <div style={{ flexShrink: 0, marginTop: 2, color: 'rgba(0,0,0,0.3)' }}>
+          <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 2V8H4L6 10V8H10V2H2Z" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" /></svg>
+        </div>
         <div>
-          <p style={ss('text', { fontSize: 12.5, color: 'rgba(0,0,0,0.45)', margin: 0, lineHeight: 1.55 }, sp)} className={sc('text', sp)}>
-            {ad.brandName && <span style={ss('brand', { fontWeight: 600, color: 'rgba(0,0,0,0.55)' }, sp)} className={sc('brand', sp)}>{ad.brandName}</span>}
+          <p style={ss('text', { fontSize: 13, color: 'rgba(0,0,0,0.5)', margin: 0, lineHeight: 1.55 }, sp)} className={sc('text', sp)}>
+            {ad.brandName && <span style={ss('brand', { fontWeight: 600, color: 'rgba(0,0,0,0.6)' }, sp)} className={sc('brand', sp)}>{ad.brandName}</span>}
             {ad.brandName && ' — '}
             {ad.adText}{' '}
-            {ad.cta && <span style={ss('cta', { ...linkCta, fontSize: 12.5, padding: 0, display: 'inline' }, sp)} className={sc('cta', sp)}>{ad.cta} ↗</span>}
+            {ad.cta && (
+              <span style={ss('cta', { ...linkCta, fontSize: 13, padding: 0, display: 'inline' }, sp)} className={sc('cta', sp)}>
+                {ad.cta} <ArrowUpRight />
+              </span>
+            )}
           </p>
-          {showLabel && <span style={ss('label', { ...inlineLabel, fontSize: 9, color: 'rgba(0,0,0,0.18)', border: 'none', padding: 0, marginLeft: 0, marginTop: 4, display: 'block' }, sp)} className={sc('label', sp)}>{labelText.toLowerCase()}</span>}
+          {showLabel && <span style={ss('label', { ...inlineLabel, fontSize: 9, color: 'rgba(0,0,0,0.3)', border: 'none', padding: 0, marginLeft: 0, marginTop: 6, display: 'block' }, sp)} className={sc('label', sp)}>{labelText.toLowerCase()}</span>}
         </div>
       </div>
     </WrapLink>
@@ -418,7 +429,11 @@ export function renderQuote(p: VariantRenderProps) {
           {ad.brandName && <span style={ss('brand', { fontSize: 13, fontWeight: 600, color: 'rgba(0,0,0,0.55)' }, sp)} className={sc('brand', sp)}>{ad.brandName}</span>}
           {showLabel && <span style={ss('label', { ...inlineLabel, fontSize: 9, color: 'rgba(0,0,0,0.2)', border: 'none', padding: 0, marginLeft: 0 }, sp)} className={sc('label', sp)}>{labelText.toLowerCase()}</span>}
         </div>
-        {ad.cta && <span style={ss('cta', { ...linkCta, fontSize: 12 }, sp)} className={sc('cta', sp)}>{ad.cta} →</span>}
+        {ad.cta && (
+          <span style={ss('cta', { ...linkCta, fontSize: 12, display: 'inline-flex', alignItems: 'center', gap: 4 }, sp)} className={sc('cta', sp)}>
+            {ad.cta} <ArrowRight />
+          </span>
+        )}
       </div>
     </WrapLink>
   );
@@ -434,21 +449,21 @@ export function renderSuggestion(p: VariantRenderProps) {
   };
 
   const pillStyle = ss('container', {
-    display: 'inline-flex', alignItems: 'center', gap: 12,
-    padding: '12px 20px 12px 14px', background: '#FFFFFF',
+    display: 'inline-flex', alignItems: 'center', gap: 14,
+    padding: '10px 18px 10px 12px', background: '#FFFFFF',
     border: '1px solid rgba(0,0,0,0.08)', borderRadius: 100, cursor: 'pointer',
     fontFamily: FONT, textDecoration: 'none', boxSizing: 'border-box',
-    transition: 'border-color 150ms ease',
+    transition: 'border-color 150ms ease, box-shadow 150ms ease',
   }, sp);
 
   const iconWrapperStyle = ss('iconWrapper', {
-    width: 32, height: 32, borderRadius: 100, background: 'rgba(0,0,0,0.03)',
+    width: 36, height: 36, borderRadius: 100, background: 'rgba(0,0,0,0.03)',
     display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
   }, sp);
 
   return (
     <div style={m(wrapperStyle, p.style)} className={p.className}>
-      <p style={ss('contextHeader', { fontSize: 11, color: 'rgba(0,0,0,0.25)', margin: '0 0 8px', fontWeight: 500 }, sp)} className={sc('contextHeader', sp)}>
+      <p style={ss('contextHeader', { fontSize: 11, color: 'rgba(0,0,0,0.3)', margin: '0 0 10px', fontWeight: 500 }, sp)} className={sc('contextHeader', sp)}>
         You might also want to try
       </p>
       <a
@@ -461,16 +476,18 @@ export function renderSuggestion(p: VariantRenderProps) {
         data-gravity-ad
       >
         <div style={iconWrapperStyle} className={sc('iconWrapper', sp)}>
-          {ad.favicon && <img src={ad.favicon} alt="" loading="lazy" style={ss('favicon', { width: 16, height: 16, borderRadius: 4, objectFit: 'contain' }, sp)} className={sc('favicon', sp)} onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }} />}
+          {ad.favicon && <img src={ad.favicon} alt="" loading="lazy" style={ss('favicon', { width: 18, height: 18, borderRadius: 5, objectFit: 'contain' }, sp)} className={sc('favicon', sp)} onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }} />}
         </div>
-        <div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-            {ad.title && <span style={ss('title', { fontSize: 13, fontWeight: 600, color: '#1A1A1A', margin: 0 }, sp)} className={sc('title', sp)}>{ad.title}</span>}
-            {showLabel && <span style={ss('label', { ...inlineLabel, fontSize: 9, border: 'none', padding: 0, marginLeft: 0 }, sp)} className={sc('label', sp)}>{labelText.toLowerCase()}</span>}
+            {ad.title && <span style={ss('title', { fontSize: 13.5, fontWeight: 600, color: '#1A1A1A', margin: 0 }, sp)} className={sc('title', sp)}>{ad.title}</span>}
+            {showLabel && <span style={ss('label', { ...inlineLabel, fontSize: 9, color: 'rgba(0,0,0,0.3)', border: 'none', padding: 0, marginLeft: 0 }, sp)} className={sc('label', sp)}>{labelText.toLowerCase()}</span>}
           </div>
-          <span style={ss('text', { fontSize: 12, color: 'rgba(0,0,0,0.4)', margin: 0 }, sp)} className={sc('text', sp)}>
-            {ad.brandName}{ad.cta ? ` · ${ad.cta}` : ''}
-          </span>
+          {ad.brandName && (
+            <span style={ss('brand', { fontSize: 12, color: 'rgba(0,0,0,0.4)', margin: 0 }, sp)} className={sc('brand', sp)}>
+              {ad.brandName}
+            </span>
+          )}
         </div>
         <ChevronRight />
       </a>
@@ -518,14 +535,14 @@ export function renderSidePanel(p: VariantRenderProps) {
   }, sp);
 
   const iconWrapperStyle = ss('iconWrapper', {
-    width: 72, background: 'rgba(0,0,0,0.02)', display: 'flex', alignItems: 'center',
+    width: 64, background: 'rgba(0,0,0,0.02)', display: 'flex', alignItems: 'center',
     justifyContent: 'center', flexShrink: 0, borderRight: '1px solid rgba(0,0,0,0.05)',
   }, sp);
 
   return (
     <WrapLink p={p} containerStyle={containerStyle} hoverStyle={p.hovered ? D.containerHover : undefined}>
       <div style={iconWrapperStyle} className={sc('iconWrapper', sp)}>
-        {ad.favicon && <img src={ad.favicon} alt="" loading="lazy" style={ss('favicon', { ...D.favicon, width: 28, height: 28, borderRadius: 6 }, sp)} className={sc('favicon', sp)} onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }} />}
+        {ad.favicon && <img src={ad.favicon} alt="" loading="lazy" style={ss('favicon', { ...D.favicon, width: 26, height: 26, borderRadius: 7 }, sp)} className={sc('favicon', sp)} onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }} />}
       </div>
       <div style={ss('inner', { padding: '16px 20px', flex: 1, display: 'flex', flexDirection: 'column', gap: 6 }, sp)} className={sc('inner', sp)}>
         <div style={ss('header', { display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 0 }, sp)} className={sc('header', sp)}>
@@ -551,12 +568,12 @@ export function renderLabeled(p: VariantRenderProps) {
     <WrapLink p={p} containerStyle={containerStyle} hoverStyle={p.hovered ? D.containerHover : undefined}>
       {showLabel && (
         <div style={ss('footer', {
-          width: 36, flexShrink: 0, background: 'rgba(0,0,0,0.02)',
+          width: 32, flexShrink: 0, background: 'rgba(0,0,0,0.025)',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
-          borderRight: '1px solid rgba(0,0,0,0.05)',
+          borderRight: '1px solid rgba(0,0,0,0.06)',
           writingMode: 'vertical-rl', textOrientation: 'mixed',
         }, sp)} className={sc('footer', sp)}>
-          <span style={{ fontSize: 9, fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', opacity: 0.25, transform: 'rotate(180deg)' }}>
+          <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'rgba(0,0,0,0.4)', transform: 'rotate(180deg)' }}>
             {labelText}
           </span>
         </div>
@@ -623,18 +640,24 @@ export function renderEmbed(p: VariantRenderProps) {
   return (
     <WrapLink p={p} containerStyle={containerStyle} hoverStyle={p.hovered ? D.containerHover : undefined}>
       <div style={ss('iconWrapper', {
-        height: 80, background: 'linear-gradient(135deg, rgba(37,99,235,0.08), rgba(37,99,235,0.02))',
+        height: 88, background: 'linear-gradient(135deg, rgba(37,99,235,0.10) 0%, rgba(37,99,235,0.03) 60%, rgba(99,102,241,0.06) 100%)',
         display: 'flex', alignItems: 'center', justifyContent: 'center',
+        borderBottom: '1px solid rgba(0,0,0,0.04)',
       }, sp)} className={sc('iconWrapper', sp)}>
-        {ad.favicon && <img src={ad.favicon} alt="" loading="lazy" style={ss('favicon', { width: 32, height: 32, borderRadius: 8, objectFit: 'contain' }, sp)} className={sc('favicon', sp)} onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }} />}
+        {ad.favicon && <img src={ad.favicon} alt="" loading="lazy" style={ss('favicon', { width: 36, height: 36, borderRadius: 10, objectFit: 'contain', boxShadow: '0 2px 8px rgba(0,0,0,0.08)' }, sp)} className={sc('favicon', sp)} onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }} />}
       </div>
-      <div style={ss('inner', { padding: '14px 18px', display: 'flex', flexDirection: 'column', gap: 6 }, sp)} className={sc('inner', sp)}>
+      <div style={ss('inner', { padding: '14px 18px 16px', display: 'flex', flexDirection: 'column', gap: 8 }, sp)} className={sc('inner', sp)}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-          {ad.brandName && <span style={ss('brand', { fontSize: 11, color: 'rgba(0,0,0,0.35)' }, sp)} className={sc('brand', sp)}>{ad.brandName}</span>}
-          {showLabel && <span style={ss('label', { ...inlineLabel, fontSize: 9, border: 'none', padding: 0, marginLeft: 0 }, sp)} className={sc('label', sp)}>{labelText.toLowerCase()}</span>}
+          {ad.brandName && <span style={ss('brand', { fontSize: 12, fontWeight: 600, color: 'rgba(0,0,0,0.5)' }, sp)} className={sc('brand', sp)}>{ad.brandName}</span>}
+          {showLabel && <span style={ss('label', { ...inlineLabel, fontSize: 9, color: 'rgba(0,0,0,0.25)', border: 'none', padding: 0, marginLeft: 0 }, sp)} className={sc('label', sp)}>{labelText.toLowerCase()}</span>}
         </div>
         {ad.title && <p style={ss('title', { fontSize: 14, fontWeight: 600, color: '#1A1A1A', margin: 0 }, sp)} className={sc('title', sp)}>{ad.title}</p>}
-        <p style={ss('text', { fontSize: 12.5, color: 'rgba(0,0,0,0.45)', margin: 0, lineHeight: 1.45 }, sp)} className={sc('text', sp)}>{ad.adText}</p>
+        <p style={ss('text', { fontSize: 13, color: 'rgba(0,0,0,0.5)', margin: 0, lineHeight: 1.5 }, sp)} className={sc('text', sp)}>{ad.adText}</p>
+        {ad.cta && (
+          <span style={ss('cta', { ...linkCta, fontSize: 12.5, marginTop: 2 }, sp)} className={sc('cta', sp)}>
+            {ad.cta} <ArrowUpRight />
+          </span>
+        )}
       </div>
     </WrapLink>
   );
@@ -659,20 +682,21 @@ export function renderSplitAction(p: VariantRenderProps) {
         <p style={ss('text', { fontSize: 13.5, color: 'rgba(0,0,0,0.55)', margin: 0, lineHeight: 1.55 }, sp)} className={sc('text', sp)}>{ad.adText}</p>
       </div>
       <div style={ss('footer', {
-        display: 'flex', borderTop: '1px solid rgba(0,0,0,0.05)',
+        display: 'flex', borderTop: '1px solid rgba(0,0,0,0.06)',
       }, sp)} className={sc('footer', sp)}>
         <span style={ss('secondaryCta', {
-          flex: 1, padding: 12, background: 'transparent', border: 'none',
-          borderRight: '1px solid rgba(0,0,0,0.05)', color: 'rgba(0,0,0,0.45)',
-          fontSize: 12.5, fontWeight: 600, cursor: 'pointer', textAlign: 'center',
+          flex: 1, padding: '11px 16px', background: 'transparent', border: 'none',
+          borderRight: '1px solid rgba(0,0,0,0.06)', color: 'rgba(0,0,0,0.35)',
+          fontSize: 12.5, fontWeight: 500, cursor: 'pointer', textAlign: 'center',
           fontFamily: 'inherit', textDecoration: 'none',
         }, sp)} className={sc('secondaryCta', sp)}>Dismiss</span>
         {ad.cta && (
           <span style={ss('cta', {
-            flex: 1, padding: 12, background: 'transparent', border: 'none',
+            flex: 1, padding: '11px 16px', background: 'rgba(37,99,235,0.04)', border: 'none',
             color: '#2563EB', fontSize: 12.5, fontWeight: 600, cursor: 'pointer',
             textAlign: 'center', fontFamily: 'inherit', textDecoration: 'none',
-          }, sp)} className={sc('cta', sp)}>{ad.cta} →</span>
+            display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 5,
+          }, sp)} className={sc('cta', sp)}>{ad.cta} <ArrowRight /></span>
         )}
       </div>
     </WrapLink>
@@ -688,20 +712,21 @@ export function renderSplitAction(p: VariantRenderProps) {
 export function renderPill(p: VariantRenderProps) {
   const { ad, slotProps: sp, showLabel, labelText } = p;
   const containerStyle = ss('container', {
-    display: 'inline-flex', alignItems: 'center', gap: 10, padding: '8px 14px 8px 10px',
+    display: 'inline-flex', alignItems: 'center', gap: 10, padding: '8px 16px 8px 10px',
     background: 'rgba(0,0,0,0.03)', borderRadius: 100,
     border: '1px solid rgba(0,0,0,0.06)',
     fontFamily: FONT, textDecoration: 'none', cursor: 'pointer', boxSizing: 'border-box',
-    lineHeight: 1.5, transition: 'border-color 150ms ease',
+    lineHeight: 1.5, transition: 'border-color 150ms ease, background 150ms ease',
   }, sp);
 
   return (
     <WrapLink p={p} containerStyle={containerStyle}>
       {ad.favicon && <img src={ad.favicon} alt="" loading="lazy" style={ss('favicon', { width: 16, height: 16, borderRadius: 4, objectFit: 'contain', flexShrink: 0 }, sp)} className={sc('favicon', sp)} onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }} />}
       {ad.brandName && <span style={ss('brand', { fontSize: 13, fontWeight: 600, color: '#1A1A1A' }, sp)} className={sc('brand', sp)}>{ad.brandName}</span>}
-      <span style={{ width: 1, height: 14, background: 'currentColor', opacity: 0.12, flexShrink: 0 }} />
-      {ad.title && <span style={ss('title', { fontSize: 12.5, color: 'rgba(0,0,0,0.45)', margin: 0 }, sp)} className={sc('title', sp)}>{ad.title}</span>}
-      {showLabel && <span style={ss('label', { ...inlineLabel, fontSize: 10, color: 'rgba(0,0,0,0.25)', border: 'none', padding: 0, marginLeft: 0 }, sp)} className={sc('label', sp)}>{labelText.toLowerCase()}</span>}
+      <span style={{ width: 1, height: 14, background: 'currentColor', opacity: 0.15, flexShrink: 0 }} />
+      {ad.title && <span style={ss('title', { fontSize: 12.5, color: 'rgba(0,0,0,0.5)', margin: 0 }, sp)} className={sc('title', sp)}>{ad.title}</span>}
+      {showLabel && <span style={ss('label', { ...inlineLabel, fontSize: 9, color: 'rgba(0,0,0,0.3)', border: 'none', padding: 0, marginLeft: 0 }, sp)} className={sc('label', sp)}>{labelText.toLowerCase()}</span>}
+      <ChevronRight />
     </WrapLink>
   );
 }
@@ -754,10 +779,16 @@ export function renderDivider(p: VariantRenderProps) {
       <div style={lineStyle} />
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
         {ad.favicon && <img src={ad.favicon} alt="" loading="lazy" style={ss('favicon', { width: 14, height: 14, borderRadius: 3, objectFit: 'contain' }, sp)} className={sc('favicon', sp)} onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }} />}
-        {ad.brandName && <span style={ss('brand', { fontSize: 12, fontWeight: 600, color: 'rgba(0,0,0,0.35)' }, sp)} className={sc('brand', sp)}>{ad.brandName}</span>}
-        {showLabel && <span style={ss('label', { ...inlineLabel, fontSize: 10, color: 'rgba(0,0,0,0.2)', border: 'none', padding: 0, marginLeft: 0 }, sp)} className={sc('label', sp)}>{labelText.toLowerCase()}</span>}
-        <span style={{ opacity: 0.2 }}>·</span>
-        {ad.cta && <span style={ss('cta', { ...linkCta, fontSize: 12, padding: 0, marginTop: 0 }, sp)} className={sc('cta', sp)}>{ad.cta} ↗</span>}
+        {ad.brandName && <span style={ss('brand', { fontSize: 12, fontWeight: 600, color: 'rgba(0,0,0,0.45)' }, sp)} className={sc('brand', sp)}>{ad.brandName}</span>}
+        {showLabel && <span style={ss('label', { ...inlineLabel, fontSize: 10, color: 'rgba(0,0,0,0.25)', border: 'none', padding: 0, marginLeft: 0 }, sp)} className={sc('label', sp)}>{labelText.toLowerCase()}</span>}
+        {ad.cta && (
+          <>
+            <span style={{ width: 1, height: 12, background: 'currentColor', opacity: 0.12 }} />
+            <span style={ss('cta', { ...linkCta, fontSize: 12, padding: 0, marginTop: 0, display: 'inline-flex', alignItems: 'center', gap: 3 }, sp)} className={sc('cta', sp)}>
+              {ad.cta} <ArrowUpRight />
+            </span>
+          </>
+        )}
       </div>
       <div style={lineStyle} />
     </WrapLink>
@@ -841,10 +872,10 @@ export function renderTooltip(p: VariantRenderProps) {
         <p style={ss('text', { fontSize: 12.5, color: 'rgba(0,0,0,0.5)', margin: 0, lineHeight: 1.5 }, sp)} className={sc('text', sp)}>{ad.adText}</p>
         {ad.cta && (
           <span style={ss('cta', {
-            width: '100%', background: '#F3F3F3', color: '#1A1A1A', border: 'none',
+            width: '100%', background: '#2563EB', color: '#FFFFFF', border: 'none',
             borderRadius: 8, padding: '8px 14px', fontSize: 12, fontWeight: 600, cursor: 'pointer',
             textAlign: 'center', fontFamily: 'inherit', textDecoration: 'none',
-            display: 'block', boxSizing: 'border-box',
+            display: 'block', boxSizing: 'border-box', transition: 'background 150ms ease',
           }, sp)} className={sc('cta', sp)}>{ad.cta}</span>
         )}
       </a>

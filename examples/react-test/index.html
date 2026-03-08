@@ -4,7 +4,20 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/png" href="https://www.trygravity.ai/favicon.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Gravity React SDK — Playground</title>
+    <title>Gravity React SDK Playground</title>
+    <meta name="description" content="Explore 25+ ad layout examples for AI platforms. Customize colors, shapes, and disclosure labels, then copy the integration code. Built with the Gravity React SDK." />
+    <meta property="og:title" content="Gravity React SDK Playground" />
+    <meta property="og:description" content="Explore 25+ ad layout examples for AI platforms. Customize and copy integration code." />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://playground.trygravity.ai" />
+    <meta property="og:image" content="https://www.trygravity.ai/og-playground.png" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Gravity React SDK Playground" />
+    <meta name="twitter:description" content="Explore 25+ ad layout examples for AI platforms. Customize and copy integration code." />
+    <meta name="twitter:image" content="https://www.trygravity.ai/og-playground.png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Libre+Baskerville:wght@400;700&display=swap" rel="stylesheet" />
     <style>
       :root, [data-mode="light"] {
         --bg: #FFFFFF;
@@ -42,7 +55,7 @@
       }
       * { box-sizing: border-box; margin: 0; padding: 0; }
       body {
-        font-family: Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
         background: var(--bg);
         color: var(--fg);
         min-height: 100vh;
@@ -63,6 +76,7 @@
     </style>
   </head>
   <body data-mode="dark">
+    <script>try{if(window.matchMedia('(prefers-color-scheme:light)').matches){document.body.setAttribute('data-mode','light');document.documentElement.setAttribute('data-mode','light')}}catch(e){}</script>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
