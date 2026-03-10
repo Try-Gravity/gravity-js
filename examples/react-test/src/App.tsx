@@ -420,8 +420,11 @@ function buildCode(
       if (v === 'accent') l.push(`    accentBar: { style: { background: '#818CF8' } },`);
       if (v === 'tooltip') l.push(`    arrow: { style: { background: '#27272A', borderColor: 'rgba(255,255,255,0.1)' } },`);
     } else {
-      if (p.bg) l.push(`    container: { style: { background: '${p.bg}'${p.borderColor ? `, borderColor: '${p.borderColor}'` : ''} } },`);
-      else if (p.borderColor) l.push(`    container: { style: { borderColor: '${p.borderColor}' } },`);
+      const cs: string[] = [];
+      if (p.bg) cs.push(`background: '${p.bg}'`);
+      if (p.borderColor) cs.push(`borderColor: '${p.borderColor}'`);
+      if (hasAccent && (v === 'quote' || v === 'native')) cs.push(`borderLeftColor: '${p.accentColor}'`);
+      if (cs.length) l.push(`    container: { style: { ${cs.join(', ')} } },`);
       if (p.fg) l.push(`    brand: { style: { color: '${p.fg}' } },`);
       if (p.fg) l.push(`    title: { style: { color: '${p.fg}' } },`);
       if (p.muted) l.push(`    text: { style: { color: '${p.muted}' } },`);
@@ -436,8 +439,7 @@ function buildCode(
     }
     if (hasAccent) {
       if (v === 'accent') l.push(`    accentBar: { style: { background: '${p.accentColor}' } },`);
-      else if (v === 'quote' || v === 'native') l.push(`    container: { style: { borderLeftColor: '${p.accentColor}' } },`);
-      else l.push(`    iconWrapper: { style: { background: '${p.accentColor}' } },`);
+      else if (v !== 'quote' && v !== 'native') l.push(`    iconWrapper: { style: { background: '${p.accentColor}' } },`);
     }
     l.push(`  }}`);
   }
