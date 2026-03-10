@@ -238,7 +238,7 @@ function darkAdSlots(variant: GravityAdVariant): GravityAdSlotProps {
     base.label = { style: { color: 'rgba(255,255,255,0.3)', background: 'rgba(255,255,255,0.06)', borderColor: 'transparent' } };
   }
 
-  if (variant === 'card' || variant === 'inline' || variant === 'minimal') {
+  if (variant === 'card' || variant === 'inline') {
     base.cta = { style: { background: '#3B82F6', color: '#FFFFFF' } };
   }
 
@@ -380,22 +380,33 @@ function buildCode(
         l.push(`    container: { style: { background: 'rgba(255,255,255,0.02)', borderLeftColor: '#818CF8' } },`);
       } else if (v === 'native' || v === 'minimal') {
         l.push(`    container: { style: { background: 'transparent', borderLeftColor: 'rgba(255,255,255,0.12)' } },`);
+      } else if (v === 'hyperlink' || v === 'text-link') {
+        l.push(`    container: { style: { color: '#93C5FD', background: 'none', borderColor: 'transparent', boxShadow: 'none' } },`);
       } else if (isTransparent) {
         l.push(`    container: { style: { background: 'transparent', borderColor: 'transparent' } },`);
       } else {
         l.push(`    container: { style: { background: 'rgba(255,255,255,0.04)', borderColor: 'rgba(255,255,255,0.08)' } },`);
       }
-      if (isBubble) {
-        l.push(`    brand: { style: { color: 'rgba(255,255,255,0.5)' } },`);
-      } else {
+      if (v === 'hyperlink') {
+        l.push(`    text: { style: { color: 'inherit', textDecorationColor: 'rgba(147,197,253,0.4)' } },`);
+        l.push(`    label: { style: { color: 'rgba(147,197,253,0.5)', borderColor: 'transparent' } },`);
+      } else if (v === 'text-link') {
         l.push(`    brand: { style: { color: '#FAFAFA' } },`);
-      }
-      l.push(`    title: { style: { color: '#FAFAFA' } },`);
-      l.push(`    text: { style: { color: '#A1A1AA' } },`);
-      if (isBubble) {
-        l.push(`    label: { style: { color: 'rgba(255,255,255,0.3)', background: 'rgba(255,255,255,0.06)' } },`);
+        l.push(`    text: { style: { color: 'inherit', textDecorationColor: 'rgba(147,197,253,0.4)' } },`);
+        l.push(`    label: { style: { color: 'rgba(255,255,255,0.4)', background: 'rgba(255,255,255,0.08)', borderColor: 'transparent' } },`);
       } else {
-        l.push(`    label: { style: { color: '#A1A1AA', borderColor: 'rgba(255,255,255,0.1)' } },`);
+        if (isBubble) {
+          l.push(`    brand: { style: { color: 'rgba(255,255,255,0.5)' } },`);
+        } else {
+          l.push(`    brand: { style: { color: '#FAFAFA' } },`);
+        }
+        l.push(`    title: { style: { color: '#FAFAFA' } },`);
+        l.push(`    text: { style: { color: '#A1A1AA' } },`);
+        if (isBubble) {
+          l.push(`    label: { style: { color: 'rgba(255,255,255,0.3)', background: 'rgba(255,255,255,0.06)' } },`);
+        } else {
+          l.push(`    label: { style: { color: '#A1A1AA', borderColor: 'rgba(255,255,255,0.1)' } },`);
+        }
       }
       if (isButtonCta) {
         l.push(`    cta: { style: { background: '#3B82F6', color: '#FFFFFF' } },`);
@@ -445,13 +456,6 @@ function buildCode(
   return l.join('\n');
 }
 
-const SECTIONS = [
-  { label: 'Cards', desc: 'Classic ad cards with visual customization', start: 0, count: 5 },
-  { label: 'Panels', desc: 'Structured layouts with accent bars, icons, and split CTAs', start: 5, count: 5 },
-  { label: 'Overlays', desc: 'Chat bubbles, toasts, and contextual popovers', start: 10, count: 3 },
-  { label: 'Compact', desc: 'Banners, toolbars, pills, and dividers', start: 13, count: 6 },
-  { label: 'Text', desc: 'Reads like content — quotes, links, and citations', start: 19, count: 6 },
-];
 
 const CONTEXT_PICKS: {
   id: ContextInterfaceId;
@@ -938,7 +942,7 @@ function App() {
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [selected, template]);
+  }, [selected, template, mode]);
 
   const applyTemplate = (i: number, m: 'light' | 'dark' = mode) => {
     const t = TEMPLATES[i];
